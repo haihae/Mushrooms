@@ -66,11 +66,20 @@ const SLOTS=[
 ['Свечение',[['нет',0],['слабое',10],['пятнами',18],['пульсирующее',28],['радужное',40]]],
 ['Частицы',[['нет',0],['споры',4],['пыльца',6],['светлячки',12],['искры',18]]],
 ['Аномалия',[['нет',0],['прозрачность',25],['второй гриб',35],['кристаллы',40],['тень',50]]]];
-const TIERS=[[0,'обычный','#9aa3b5'],[25,'необычный','#6fcf8a'],[46,'редкий','#5aa2ff'],[71,'эпический','#b57bff'],[101,'легендарный','#ffc94d']];
-const W=v=>v.map(x=>(1+x[1])**-1.5);
+const TIERS=[[0,'обычный','#9aa3b5'],[30,'необычный','#6fcf8a'],[47,'редкий','#5aa2ff'],[59,'очень редкий','#35d6d0'],[71,'эпический','#b57bff'],[83,'легендарный','#ffc94d'],[95,'мифический','#ff7a5c'],[108,'уникальный','#ff5fd0']];
+SLOTS.forEach(([n,v])=>{const w=v.map(x=>(1+x[1])**-1.5),m=Math.max(...w);v.forEach((x,i)=>{x[2]=w[i];x[1]=Math.round(3*Math.log2(m/w[i]))})});
+const W=v=>v.map(x=>x[2]);
 function pick(seed){const r=m32(seed);return SLOTS.map(([n,v])=>{const w=W(v);let t=r()*w.reduce((a,b)=>a+b);for(let i=0;i<w.length;i++){t-=w[i];if(t<=0)return i}return 0})}
 const act=ix=>[1,ix[2]>0,1,ix[5]>0,1,ix[8]>0,ix[9]>0];
-const total=(ix,s)=>ix.reduce((a,i,k)=>a+SLOTS[k][1][i][1],0)+colors(s).reduce((t,c,k)=>t+(act(ix)[k]?c.b:0),0);
+const HN=['Монохром','Аналоговая','Комплементарная','Триада'],HPR={3:[0.02152,0.08465,0.03327,0.02233],4:[0.002403,0.018918,0.008944,0.015357],5:[0.00026,0.004006,0.002039,0.006855]},HPT={3:[17,11,15,16],4:[26,17,20,18],5:[36,24,27,22]};
+const dh=(a,b)=>{const d=Math.abs(a-b)%360;return Math.min(d,360-d)};
+function hmask(hs){let m=0;const n=hs.length,s=[...hs].sort((a,b)=>a-b);let g=s[0]+360-s[n-1];for(let i=0;i<n-1;i++)g=Math.max(g,s[i+1]-s[i]);const sp=360-g;
+if(sp<=30)m|=1;if(sp<=60)m|=2;
+for(const a of hs){let f=0,ok=true;for(const c of hs){if(dh(c,a)>15){if(dh(c,(a+180)%360)<=15)f++;else{ok=false;break}}}if(ok&&f>0){m|=4;break}}
+for(const a of hs){const z=[0,0,0];let ok=true;for(const c of hs){if(dh(c,a)<=15)z[0]++;else if(dh(c,(a+120)%360)<=15)z[1]++;else if(dh(c,(a+240)%360)<=15)z[2]++;else{ok=false;break}}if(ok&&z[0]&&z[1]&&z[2]){m|=8;break}}
+return m}
+function harm(ix,s){const C=colors(s),a=act(ix),hs=[0,1,2,3,4].filter(k=>a[k]).map(k=>C[k].h),n=hs.length,m=hmask(hs);let b=null;for(let i=0;i<4;i++)if((m&(1<<i))&&(!b||HPT[n][i]>b.p))b={i,n,p:HPT[n][i]};return b}
+const total=(ix,s)=>{const h=harm(ix,s);return ix.reduce((a,i,k)=>a+SLOTS[k][1][i][1],0)+(h?h.p:0)};
 const tierOf=p=>TIERS.filter(t=>p>=t[0]).pop();
 
 /* background */
@@ -90,10 +99,10 @@ const cy=170;
 const CAPS=[[dome(85,70,cy),85,cy-70],[dome(100,36,cy),100,cy-36],[`M80,${cy}Q125,${cy-95} 150,${cy-105}Q175,${cy-95} 220,${cy}Q150,${cy+12} 80,${cy}Z`,70,cy-105],[dome(72,88,cy),72,cy-88],[`M52,${cy-55}Q70,${cy+8} 150,${cy+8}Q230,${cy+8} 248,${cy-55}Q150,${cy-30} 52,${cy-55}Z`,98,cy-55],[dome(85,55,cy)+dome(55,42,cy-42),85,cy-97],[`M70,${cy}Q70,${cy-70} 140,${cy-100}Q200,${cy-120} 190,${cy-70}Q180,${cy-50} 205,${cy-45}Q225,${cy-30} 230,${cy}Q150,${cy+12} 70,${cy}Z`,80,cy-110]];
 const PAL=[['#6b4228','#8f5d3a','#b7835a'],['#bdb4a2','#e6dfd0','#fbf7ee'],['#7a1620','#c2303a','#ee6a5f'],['#b88a14','#efbe2a','#ffe27a'],['#1d3f8f','#3a74d8','#8fb9ff'],['#4b2288','#8450cf','#c39bff'],['#9fb4c8','#d9c8e8','#effff8'],['#d63a8e','#ff8a3d','#ffd25e']];
 const CN=['шляпка','узор','ножка','юбочка','пластинки','свечение','частицы'],SAT=[25,45,65,85],LIG=[30,42,54,66];
-function colors(seed){const r=m32(seed^0x7f4a7c15);return CN.map((n,k)=>{const h=Math.floor(r()*360),si=Math.floor(r()*4),li=Math.floor(r()*4);let x=Math.imul(k*977+h*16+si*4+li+1,0x9E3779B1);x^=x>>>15;x=Math.imul(x,0x85EBCA6B);x^=x>>>13;const v=(x>>>0)%100;return{h,s:SAT[si],l:LIG[li],b:v<75?0:v<90?1:v<96?2:v<99?3:5}})}
+function colors(seed){const r=m32(seed^0x7f4a7c15);return CN.map((n,k)=>{const h=Math.floor(r()*360),si=Math.floor(r()*4),li=Math.floor(r()*4);return{h,s:SAT[si],l:LIG[li]}})}
 const hh=(c,d,dl=0,ds=0)=>`hsl(${(c.h+d+360)%360} ${Math.min(100,c.s+ds)}% ${Math.max(5,Math.min(95,c.l+dl))}%)`;
 const hex=c=>{const l=c.l/100,a=c.s/100*Math.min(l,1-l),f=n=>{const k=(n+c.h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))).toString(16).padStart(2,'0')};return('#'+f(0)+f(8)+f(4)).toUpperCase()};
-const colRows=(ix,s)=>{const PR={0:75,1:15,2:6,3:3,5:1},a=act(ix);return colors(s).map((c,k)=>a[k]?`<tr><td>Цвет: ${CN[k]}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${hh(c,0)};vertical-align:-1px"></span> ${hex(c)}</td><td>+${c.b}</td><td>${PR[c.b]}%</td></tr>`:'').join('')};
+const colRows=(ix,s)=>{const a=act(ix),h=harm(ix,s);return colors(s).map((c,k)=>a[k]?`<tr><td>Цвет: ${CN[k]}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${hh(c,0)};vertical-align:-1px"></span> ${hex(c)}</td><td></td><td></td></tr>`:'').join('')+(h?`<tr><td>Гармония</td><td>${HN[h.i]}</td><td>+${h.p}</td><td>${(HPR[h.n][h.i]*100).toFixed(2)}%</td></tr>`:'')};
 const rs=()=>crypto.getRandomValues(new Uint32Array(1))[0];
 const idf=s=>'№ '+s.toString(16).toUpperCase().padStart(8,'0');
 
@@ -191,9 +200,9 @@ $('cbtn').onclick=showCol;$('ccl').onclick=()=>$('cdlg').close();
 $('srt').onclick=()=>{byPts=!byPts;showCol()};
 const rowsHtml=(ix,s)=>{const p=total(ix,s);return SLOTS.map(([n,v],k)=>{const w=W(v),pc=w[ix[k]]/w.reduce((a,b)=>a+b)*100;return `<tr><td>${n}</td><td>${v[ix[k]][0]}</td><td>+${v[ix[k]][1]}</td><td>${pc<1?pc.toFixed(2):pc.toFixed(1)}%</td></tr>`}).join('')+colRows(ix,s)+`<tr><td colspan="2"><b>Итого</b></td><td><b>${p}</b></td><td></td></tr>`};
 $('vid').onclick=()=>$('vdlg').showModal();
-$('tbl').onclick=()=>{const PR={0:75,1:15,2:6,3:3,5:1},H=t=>`<tr><td colspan="3" style="padding-top:14px"><b>${t}</b></td></tr>`;
+$('tbl').onclick=()=>{const H=t=>`<tr><td colspan="3" style="padding-top:14px"><b>${t}</b></td></tr>`;
 let h=SLOTS.map(([n,v])=>{const w=W(v),t=w.reduce((a,b)=>a+b);return H(n)+v.map(([nm,p],i)=>{const pc=w[i]/t*100;return `<tr><td>${nm}</td><td>+${p}</td><td>${pc<1?pc.toFixed(2):pc.toFixed(1)}%</td></tr>`}).join('')}).join('');
-h+=H('Цвета')+`<tr><td colspan="3" style="font-size:13px">У шляпки, узора, ножки, юбочки, пластинок, свечения и частиц (если элемент есть) свой цвет из 5760 вариантов. Код цвета даёт бонус, у соседних оттенков он может быть разным.</td></tr>`+Object.entries(PR).map(([b,p])=>`<tr><td>Бонус за код цвета</td><td>+${b}</td><td>${p}%</td></tr>`).join('');
+h+=H('Гармония цветов')+`<tr><td colspan="3" style="font-size:13px">Если оттенки шляпки, ножки и пластинок (а также узора и юбочки, если они есть) складываются в гармонию, гриб получает бонус. Чем больше элементов участвует, тем он ценнее. Ниже очки при 3, 4 и 5 цветах и шанс при 3 цветах.</td></tr>`+HN.map((nm,i)=>`<tr><td>${nm}</td><td>+${HPT[3][i]} / +${HPT[4][i]} / +${HPT[5][i]}</td><td>${(HPR[3][i]*100).toFixed(1)}%</td></tr>`).join('');
 h+=H('Ступени редкости')+TIERS.map(t=>`<tr><td style="color:${t[2]}">${t[1]}</td><td colspan="2">от ${t[0]} очков</td></tr>`).join('');
 $('ttb').innerHTML=h;$('tdlg').showModal()};
 $('tcl').onclick=()=>$('tdlg').close();
