@@ -1,0 +1,206 @@
+<!DOCTYPE html><html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"><title>Грибной лес</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--ink:#e9e6f7;--mute:#9b97bd;--card:#14173af0;--line:#2c3068;--btn:#f3d27a;--btnt:#2a1f05}
+html{scroll-padding-top:env(safe-area-inset-top,0px);height:100%}
+body{margin:0;height:100%;background:#0b0f2e;color:var(--ink);font-family:"Trebuchet MS","Segoe UI",sans-serif;overflow:hidden}
+#bg{position:fixed;inset:0;width:100%;height:100%}
+main{position:relative;height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;padding:8px 14px 14px;box-sizing:border-box}
+#stage{flex:1;min-height:0;width:min(100%,460px);transform-origin:50% 92%}
+.pop{animation:pop .7s cubic-bezier(.2,1.3,.4,1)}
+@keyframes pop{from{transform:scale(.5);opacity:0}}
+.card{width:min(100%,460px);background:var(--card);border:2px solid var(--tc,var(--line));border-radius:18px;padding:14px 16px;box-sizing:border-box}
+.row{display:flex;justify-content:space-between;align-items:baseline}
+#id{font-size:22px;font-weight:700;letter-spacing:.04em}
+#tier{color:var(--tc);font-weight:700}
+.sub{color:var(--mute);font-size:14px;margin-top:2px}
+.btns,.open{display:flex;gap:10px;margin-top:12px}
+.open{margin-top:8px}
+button{font:inherit;border:0;border-radius:12px;padding:12px 14px;cursor:pointer;background:#262a63;color:var(--ink)}
+#go{flex:1;background:var(--btn);color:var(--btnt);font-weight:700}
+input{flex:1;min-width:0;font:inherit;background:#0e1130;color:var(--ink);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+dialog{background:#14173a;color:var(--ink);border:2px solid var(--tc,var(--line));border-radius:18px;padding:16px;width:min(92vw,420px);max-height:85vh;overflow:auto}
+dialog::backdrop{background:#05061ab3}
+table{width:100%;border-collapse:collapse}
+td{padding:7px 0;border-bottom:1px solid var(--line);font-size:15px}
+td:nth-child(1){color:var(--mute)}td:nth-child(3){text-align:right;font-weight:700}td:nth-child(4){text-align:right;color:var(--mute);font-size:12px;padding-left:8px}
+#badge{font-weight:700;font-size:20px;letter-spacing:.08em;text-transform:uppercase;color:var(--tc);text-shadow:0 0 14px var(--tc);padding:4px 0}
+#add[disabled]{opacity:.6;cursor:default}
+.btns button{flex:1}
+summary{cursor:pointer;color:var(--mute);margin-top:10px;font-size:14px}
+.op{background:none;color:var(--ink);padding:0;width:100%;font-size:13px}
+.del{width:100%;margin-top:6px;padding:6px;font-size:12px;background:#3a1d3f;color:var(--ink)}
+.three{gap:8px}.three button{padding:12px 4px;font-size:14px}
+#ttb td{color:var(--ink)}#ttb td:nth-child(2),#ttb td:nth-child(3){text-align:right;font-weight:400}#ttb td:nth-child(3){color:var(--mute);font-size:12px}
+#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
+.it{background:#0e1130;border:2px solid var(--c);border-radius:12px;padding:6px;text-align:center;font-size:13px}
+.it svg{width:100%;height:auto;display:block}
+.it b{color:var(--c)}
+@media (prefers-reduced-motion:reduce){.pop{animation:none}}
+</style></head><body>
+<svg id="bg" viewBox="0 0 800 600" preserveAspectRatio="xMidYMax slice" aria-hidden="true"></svg>
+<main><div id="badge"></div><svg id="stage" viewBox="0 0 300 320" role="img" aria-label="Гриб"></svg>
+<div class="card" id="card">
+<div class="row"><span id="id"></span><span id="tier"></span></div>
+<div class="sub" id="pts"></div>
+<div class="btns"><button id="go">Найти гриб</button></div><div class="btns three" style="margin-top:8px"><button id="add">В коллекцию</button><button id="info">Состав</button><button id="cbtn">Коллекция</button></div><details id="more"><summary>Ещё</summary><div class="btns three"><button id="vid">Поиск по ID</button><button id="tbl">Таблица</button></div></details>
+
+<div class="sub" id="cnt" style="margin-top:8px"></div>
+</div></main>
+<dialog id="dlg"><div class="row"><b id="dt"></b><button id="cls">Закрыть</button></div><table id="tb"></table></dialog>
+<dialog id="cdlg"><div class="row"><b id="ct"></b><button id="ccl">Закрыть</button></div><div class="sub" id="cs"></div><button id="srt" style="margin-top:8px"></button><div id="grid"></div></dialog>
+<dialog id="vdlg"><div class="row"><b>Поиск по ID</b><button id="vcl">Закрыть</button></div><div class="open"><input id="vin" placeholder="ID: до 8 символов 0-9, A-F" maxlength="10" autocomplete="off"><button id="vgo">Открыть</button></div><div class="sub" id="vmsg">Гриб можно только посмотреть, в коллекцию он не добавляется.</div><div id="vres"></div></dialog>
+<dialog id="tdlg"><div class="row"><b>Таблица элементов</b><button id="tcl">Закрыть</button></div><div class="sub">Вариант, очки редкости и шанс выпадения внутри своего элемента.</div><table id="ttb"></table></dialog>
+<script>
+const $=s=>document.getElementById(s);
+const m32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
+const SLOTS=[
+['Форма шляпки',[['купол',0],['плоская',1],['конус',2],['колокол',4],['воронка',7],['многоярусная',12],['спиральная',20]]],
+['Окраска шляпки',[['однотонная',0],['двухцветная',6],['перламутровая',15]]],
+['Узор',[['гладкая',0],['крапинки',2],['пятна',3],['полосы',5],['кольца',8],['сетка',12],['звёзды',18]]],
+['Текстура',[['матовая',0],['бархатная',2],['чешуйчатая',4],['глянцевая',6],['кристаллическая',14]]],
+['Ножка',[['прямая',0],['толстая',1],['изогнутая',3],['узловатая',5],['двойная',10]]],
+['Юбочка',[['нет',0],['простое',2],['кружевное',6],['двойное',9],['светящееся',15]]],
+['Пластинки',[['редкие',0],['частые',1],['радиальные',4],['цветные',9]]],
+['Основание',[['обычное',0],['корни',2],['мох',3],['клубень',5],['ореол спор',10]]],
+['Свечение',[['нет',0],['слабое',10],['пятнами',18],['пульсирующее',28],['радужное',40]]],
+['Частицы',[['нет',0],['споры',4],['пыльца',6],['светлячки',12],['искры',18]]],
+['Аномалия',[['нет',0],['прозрачность',25],['второй гриб',35],['кристаллы',40],['тень',50]]]];
+const TIERS=[[0,'обычный','#9aa3b5'],[25,'необычный','#6fcf8a'],[46,'редкий','#5aa2ff'],[71,'эпический','#b57bff'],[101,'легендарный','#ffc94d']];
+const W=v=>v.map(x=>(1+x[1])**-1.5);
+function pick(seed){const r=m32(seed);return SLOTS.map(([n,v])=>{const w=W(v);let t=r()*w.reduce((a,b)=>a+b);for(let i=0;i<w.length;i++){t-=w[i];if(t<=0)return i}return 0})}
+const act=ix=>[1,ix[2]>0,1,ix[5]>0,1,ix[8]>0,ix[9]>0];
+const total=(ix,s)=>ix.reduce((a,i,k)=>a+SLOTS[k][1][i][1],0)+colors(s).reduce((t,c,k)=>t+(act(ix)[k]?c.b:0),0);
+const tierOf=p=>TIERS.filter(t=>p>=t[0]).pop();
+
+/* background */
+(function(){const r=m32(7),a=(x,y)=>x+r()*(y-x);let s=`<defs><linearGradient id="sk" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0a0d2b"/><stop offset=".55" stop-color="#2b2559"/><stop offset="1" stop-color="#6a4377"/></linearGradient></defs><rect width="800" height="600" fill="url(#sk)"/>`;
+for(let i=0;i<45;i++)s+=`<circle cx="${a(0,800)}" cy="${a(0,300)}" r="${a(.6,1.6)}" fill="#fff" opacity="${a(.3,.9)}"/>`;
+s+=`<circle cx="620" cy="110" r="72" fill="#f1ecd0" opacity=".1"/><circle cx="620" cy="110" r="38" fill="#f1ecd0"/>`;
+const pine=(x,y,h,c)=>`<polygon points="${x},${y-h} ${x+h*.3},${y-h*.4} ${x+h*.14},${y-h*.4} ${x+h*.38},${y} ${x-h*.38},${y} ${x-h*.14},${y-h*.4} ${x-h*.3},${y-h*.4}" fill="${c}"/>`;
+for(let i=0;i<18;i++)s+=pine(a(-20,820),470,a(120,190),'#1d2050');
+for(let i=0;i<13;i++)s+=pine(a(-20,820),530,a(150,240),'#14173d');
+s+=`<rect y="500" width="800" height="100" fill="#101336"/>`;
+for(let i=0;i<8;i++)s+=pine(i%2?a(630,830):a(-30,170),620,a(260,380),'#0b0e29');
+$('bg').innerHTML=s})();
+
+/* mushroom */
+const dome=(W,H,y,c=150)=>`M${c-W},${y}C${c-W},${y-H*1.33} ${c+W},${y-H*1.33} ${c+W},${y}Q${c},${y+14} ${c-W},${y}Z`;
+const cy=170;
+const CAPS=[[dome(85,70,cy),85,cy-70],[dome(100,36,cy),100,cy-36],[`M80,${cy}Q125,${cy-95} 150,${cy-105}Q175,${cy-95} 220,${cy}Q150,${cy+12} 80,${cy}Z`,70,cy-105],[dome(72,88,cy),72,cy-88],[`M52,${cy-55}Q70,${cy+8} 150,${cy+8}Q230,${cy+8} 248,${cy-55}Q150,${cy-30} 52,${cy-55}Z`,98,cy-55],[dome(85,55,cy)+dome(55,42,cy-42),85,cy-97],[`M70,${cy}Q70,${cy-70} 140,${cy-100}Q200,${cy-120} 190,${cy-70}Q180,${cy-50} 205,${cy-45}Q225,${cy-30} 230,${cy}Q150,${cy+12} 70,${cy}Z`,80,cy-110]];
+const PAL=[['#6b4228','#8f5d3a','#b7835a'],['#bdb4a2','#e6dfd0','#fbf7ee'],['#7a1620','#c2303a','#ee6a5f'],['#b88a14','#efbe2a','#ffe27a'],['#1d3f8f','#3a74d8','#8fb9ff'],['#4b2288','#8450cf','#c39bff'],['#9fb4c8','#d9c8e8','#effff8'],['#d63a8e','#ff8a3d','#ffd25e']];
+const CN=['шляпка','узор','ножка','юбочка','пластинки','свечение','частицы'],SAT=[25,45,65,85],LIG=[30,42,54,66];
+function colors(seed){const r=m32(seed^0x7f4a7c15);return CN.map((n,k)=>{const h=Math.floor(r()*360),si=Math.floor(r()*4),li=Math.floor(r()*4);let x=Math.imul(k*977+h*16+si*4+li+1,0x9E3779B1);x^=x>>>15;x=Math.imul(x,0x85EBCA6B);x^=x>>>13;const v=(x>>>0)%100;return{h,s:SAT[si],l:LIG[li],b:v<75?0:v<90?1:v<96?2:v<99?3:5}})}
+const hh=(c,d,dl=0,ds=0)=>`hsl(${(c.h+d+360)%360} ${Math.min(100,c.s+ds)}% ${Math.max(5,Math.min(95,c.l+dl))}%)`;
+const hex=c=>{const l=c.l/100,a=c.s/100*Math.min(l,1-l),f=n=>{const k=(n+c.h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))).toString(16).padStart(2,'0')};return('#'+f(0)+f(8)+f(4)).toUpperCase()};
+const colRows=(ix,s)=>{const PR={0:75,1:15,2:6,3:3,5:1},a=act(ix);return colors(s).map((c,k)=>a[k]?`<tr><td>Цвет: ${CN[k]}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${hh(c,0)};vertical-align:-1px"></span> ${hex(c)}</td><td>+${c.b}</td><td>${PR[c.b]}%</td></tr>`:'').join('')};
+const rs=()=>crypto.getRandomValues(new Uint32Array(1))[0];
+const idf=s=>'№ '+s.toString(16).toUpperCase().padStart(8,'0');
+
+const star=(x,y,r)=>`${x},${y-r} ${x+r*.3},${y-r*.3} ${x+r},${y} ${x+r*.3},${y+r*.3} ${x},${y+r} ${x-r*.3},${y+r*.3} ${x-r},${y} ${x-r*.3},${y-r*.3}`;
+const stem=(cx,w,b)=>{const L=cx-w/2,R=cx+w/2;return `<path d="M${L},${cy}C${L+b},${cy+45} ${L-b},${cy+90} ${L-8},282L${R+8},282C${R-b},${cy+90} ${R+b},${cy+45} ${R},${cy}Z" fill="url(#sg)"/>`};
+
+function draw(ix,seed){
+const g=m32(seed^0x5bd1e995),rn=(a,b)=>a+g()*(b-a);
+const [sh,col,pat,tex,st,rg,gl,bs,gw,pt,an]=ix,[cd,CW,top]=CAPS[sh],C=colors(seed),cc=C[0],gc=hh(C[5],0,35,40);
+const P=col==1?[hh(cc,0,-14),hh(cc,0,0),hh(cc,45,18)]:col==2?[hh(cc,0,8,10),hh(cc,40,28,15),hh(cc,-40,40,20)]:[hh(cc,0,-14),hh(cc,0,0),hh(cc,0,14)];
+const pc=hh(C[1],0,20);
+let d=`<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P[2]}"/><stop offset=".55" stop-color="${P[1]}"/><stop offset="1" stop-color="${P[0]}"/></linearGradient><linearGradient id="sg"><stop offset="0" stop-color="#cdbd9b"/><stop offset=".45" stop-color="#f2e8d0"/><stop offset="1" stop-color="#cdbd9b"/></linearGradient><linearGradient id="rb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5f6d"/><stop offset=".25" stop-color="#ffe45f"/><stop offset=".5" stop-color="#5fff9a"/><stop offset=".75" stop-color="#5fb7ff"/><stop offset="1" stop-color="#d45fff"/></linearGradient><filter id="bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter><filter id="b3" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter><filter id="blk"><feGaussianBlur stdDeviation="2"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .7 0"/></filter><clipPath id="cc"><path d="${cd}"/></clipPath></defs>`;
+d+=`<ellipse cx="150" cy="284" rx="75" ry="8" fill="#05061a" opacity=".5"/>`;
+if(gw==1)d+=`<circle cx="150" cy="${cy-30}" r="110" fill="${gc}" opacity=".22" filter="url(#bl)"/>`;
+if(gw==2)d+=`<circle cx="150" cy="${cy-30}" r="100" fill="${gc}" opacity=".12" filter="url(#bl)"/>`;
+if(gw==3)d+=`<circle cx="150" cy="${cy-30}" r="120" fill="${gc}" opacity=".3" filter="url(#bl)"><animate attributeName="opacity" values=".12;.55;.12" dur="2.6s" repeatCount="indefinite"/></circle>`;
+if(gw==4)d+=`<circle cx="150" cy="${cy-30}" r="125" fill="url(#rb)" opacity=".4" filter="url(#bl)"><animateTransform attributeName="transform" type="rotate" from="0 150 140" to="360 150 140" dur="8s" repeatCount="indefinite"/></circle>`;
+if(an==4)d+=`<use href="#m" transform="translate(-30 4)" filter="url(#blk)"/>`;
+d+=`<g id="m"${an==1?' opacity=".5"':''}>`;
+/* stem + base */
+if(bs==1)d+=`<path d="M140,280Q120,290 100,286M160,280Q180,292 204,286M146,282Q140,296 126,298M154,282Q160,296 176,298" stroke="#cdbd9b" fill="none" stroke-width="4" stroke-linecap="round"/>`;
+if(bs==3)d+=`<ellipse cx="150" cy="276" rx="28" ry="16" fill="#dccfae"/>`;
+d+=st==4?stem(128,18,10)+stem(172,18,-10):stem(150,[26,42,24,28][st],st==2?14:0);
+if(st==3)for(const y of[200,225,250])d+=`<ellipse cx="150" cy="${y}" rx="17" ry="5" fill="#cdbd9b"/>`;
+if(bs==2)for(let i=0;i<8;i++)d+=`<circle cx="${rn(112,188)}" cy="${rn(274,284)}" r="${rn(6,12)}" fill="${i%2?'#3f8f5a':'#5fb070'}"/>`;
+if(bs==4)d+=`<ellipse cx="150" cy="284" rx="95" ry="14" fill="none" stroke="#cfe8ff" opacity=".6" stroke-width="3" stroke-dasharray="2 6"/>`;
+/* ring */
+const rx=st==4?42:st==1?32:24,ry=cy+34;
+if(rg==1)d+=`<ellipse cx="150" cy="${ry}" rx="${rx}" ry="6" fill="#f4ead2" stroke="#bfae88"/>`;
+if(rg==2)d+=`<ellipse cx="150" cy="${ry}" rx="${rx}" ry="7" fill="#fff" stroke="#bfae88" stroke-width="3" stroke-dasharray="3 3"/>`;
+if(rg==3)d+=`<ellipse cx="150" cy="${ry+12}" rx="${rx-4}" ry="5" fill="#e6d9b8" stroke="#bfae88"/><ellipse cx="150" cy="${ry}" rx="${rx}" ry="6" fill="#f4ead2" stroke="#bfae88"/>`;
+if(rg==4)d+=`<ellipse cx="150" cy="${ry}" rx="${rx+4}" ry="8" fill="${gc}" opacity=".7" filter="url(#b3)"/><ellipse cx="150" cy="${ry}" rx="${rx}" ry="5" fill="#fff"/>`;
+/* cap */
+d+=`<path d="${cd}" fill="url(#cg)"/><g clip-path="url(#cc)">`;
+if(pat==1)for(let i=0;i<16;i++)d+=`<circle cx="${rn(70,230)}" cy="${rn(cy-80,cy-5)}" r="${rn(1.5,3)}" fill="${pc}" opacity=".8"/>`;
+if(pat==2)for(let i=0;i<6;i++)d+=`<circle cx="${rn(75,225)}" cy="${rn(cy-75,cy-10)}" r="${rn(6,12)}" fill="${pc}" opacity=".85"/>`;
+if(pat==3)for(let i=-4;i<5;i++)d+=`<path d="M${150+i*5},${cy-115}Q${150+i*22},${cy-40} ${150+i*24},${cy+5}" stroke="${pc}" stroke-width="3" fill="none" opacity=".7"/>`;
+if(pat==4)for(let i=0;i<4;i++)d+=`<ellipse cx="150" cy="${cy+5}" rx="${20+i*22}" ry="${12+i*18}" stroke="${pc}" stroke-width="3" fill="none" opacity=".7"/>`;
+if(pat==5)for(let x=0;x<300;x+=20)d+=`<path d="M${x},${cy-120}L${x+60},${cy+10}M${x+60},${cy-120}L${x},${cy+10}" stroke="${pc}" stroke-width="1.5" opacity=".6"/>`;
+if(pat==6)for(let i=0;i<7;i++)d+=`<polygon points="${star(rn(75,225),rn(cy-75,cy-12),rn(5,9))}" fill="${pc}" opacity=".9"/>`;
+if(tex==1)for(let i=0;i<50;i++)d+=`<circle cx="${rn(50,250)}" cy="${rn(cy-110,cy)}" r="1.2" fill="#fff" opacity=".2"/>`;
+if(tex==2){let p='';for(let y=cy-110;y<cy+8;y+=14)for(let x=(y/14|0)%2?50:59;x<250;x+=18)p+=`M${x},${y}q9,10 18,0`;d+=`<path d="${p}" stroke="#000" opacity=".25" fill="none"/>`}
+if(tex==3)d+=`<ellipse cx="122" cy="${top+28}" rx="26" ry="9" fill="#fff" opacity=".35" transform="rotate(-25 122 ${top+28})"/>`;
+if(tex==4)for(let i=0;i<10;i++){const x=rn(70,230),y=rn(cy-80,cy-10);d+=`<polygon points="${x},${y-9} ${x+6},${y} ${x},${y+9} ${x-6},${y}" fill="#dff6ff" opacity=".55"/>`}
+if(sh==6)d+=`<path d="M150,${cy-70}c20,-6 30,12 14,24c-18,12 -42,-4 -34,-26c8,-22 44,-24 58,-2" fill="none" stroke="#fff" opacity=".5" stroke-width="3"/>`;
+if(gw==2)for(let i=0;i<6;i++){const x=rn(80,220),y=rn(cy-70,cy-12);d+=`<circle cx="${x}" cy="${y}" r="9" fill="${gc}" filter="url(#b3)"/><circle cx="${x}" cy="${y}" r="4" fill="#fff"/>`}
+d+=`</g>`;
+/* gills */
+const gr=CW*.82,n=[7,18,14,12][gl];d+=`<ellipse cx="150" cy="${cy+4}" rx="${gr}" ry="8" fill="#2a1a22"/>`;
+for(let i=0;i<n;i++){const t=(i+.5)/n*2-1,x=150+gr*t,h=8*Math.sqrt(1-t*t),c=gl==3?['#ff7ad9','#7affd9','#ffd97a'][i%3]:'#7a5560';
+d+=gl==2?`<line x1="150" y1="${cy+4}" x2="${150+gr*Math.cos(i/(n-1)*Math.PI)}" y2="${cy+4+8*Math.sin(i/(n-1)*Math.PI)}" stroke="${c}"/>`:`<line x1="${x}" y1="${cy+4-h}" x2="${x}" y2="${cy+4+h}" stroke="${c}"/>`}
+/* anomalies on cap */
+if(an==2){const mx=150+rn(-20,20),ty=top+8;d+=`<rect x="${mx-3}" y="${ty-12}" width="6" height="14" fill="#e9dcc0"/><path d="${dome(16,12,ty-10,mx)}" fill="${P[2]}"/>`}
+if(an==3)for(let i=0;i<5;i++){const x=150+(i-2)*22,h=rn(28,48);d+=`<polygon points="${x-8},${top+12} ${x+rn(-3,3)},${top-h} ${x+8},${top+12}" fill="#bfeaff" opacity=".8" stroke="#fff" stroke-opacity=".6"/>`}
+d+=`</g>`;
+/* particles */
+const N=pt==3?9:pt==4?10:22;
+for(let i=0;i<N&&pt;i++){const x=rn(30,270),y=rn(50,280),a=`<animate attributeName="opacity" values=".2;1;.2" dur="${rn(1.8,3.6).toFixed(1)}s" repeatCount="indefinite"/>`;
+if(pt==1)d+=`<circle cx="${x}" cy="${y}" r="${rn(1.5,3)}" fill="#d9e6ff" opacity=".7"/>`;
+if(pt==2)d+=`<circle cx="${x}" cy="${y}" r="${rn(2,3.5)}" fill="#ffe27a" opacity=".85"/>`;
+if(pt==3)d+=`<circle cx="${x}" cy="${y}" r="9" fill="#fff7a0" opacity=".35" filter="url(#b3)">${a}</circle><circle cx="${x}" cy="${y}" r="2.5" fill="#fffbd0">${a}</circle>`;
+if(pt==4)d+=`<polygon points="${star(x,y,rn(3,7))}" fill="#fff4b0">${a}</polygon>`}
+const pcl=hh(C[6],0,30,40);
+return d.replaceAll('#cdbd9b',hh(C[2],0,-12)).replaceAll('#f2e8d0',hh(C[2],0,14)).replaceAll('#dccfae',hh(C[2],0,8)).replaceAll('#f4ead2',hh(C[3],0,20)).replaceAll('#e6d9b8',hh(C[3],0,8)).replaceAll('#bfae88',hh(C[3],0,-18)).replaceAll('#7a5560',hh(C[4],0,10)).replaceAll('#2a1a22',hh(C[4],0,-25)).replaceAll('#ff7ad9',hh(C[4],0,25,20)).replaceAll('#7affd9',hh(C[4],120,25,20)).replaceAll('#ffd97a',hh(C[4],240,25,20)).replaceAll('#d9e6ff',pcl).replaceAll('#ffe27a',pcl).replaceAll('#fff7a0',pcl).replaceAll('#fffbd0',pcl).replaceAll('#fff4b0',pcl)}
+
+/* ui */
+let seed=0,found=0,mc=[],byPts=true;
+try{mc=JSON.parse(localStorage.getItem('mc2')||'[]')}catch(e){}
+const save=()=>{try{localStorage.setItem('mc2',JSON.stringify(mc))}catch(e){}};
+const LIM=50;
+const rating=()=>mc.reduce((a,s)=>a+total(pick(s),s),0);
+const upd=()=>{$('cnt').textContent='Найдено: '+found+' · Коллекция: '+mc.length+'/'+LIM+' · Рейтинг: '+rating()};
+const addSt=()=>{const has=mc.includes(seed),full=mc.length>=LIM;$('add').disabled=has||full;$('add').textContent=has?'В коллекции ✓':full?'Коллекция полна':'В коллекцию'};
+const dw=(ix,s,p)=>draw(ix,s).replace(/id="(\w+)"/g,`id="$1${p}"`).replace(/url\(#(\w+)\)/g,`url(#$1${p})`).replace(/href="#(\w+)"/g,`href="#$1${p}"`);
+function render(s){seed=s;const ix=pick(s),p=total(ix,s),t=tierOf(p);window.cur=ix;
+$('stage').innerHTML=dw(ix,s,'x');
+for(const e of[$('stage'),$('badge')]){e.classList.remove('pop');void e.getBoundingClientRect();e.classList.add('pop')}
+$('id').textContent=idf(s);$('tier').textContent=t[1];$('pts').textContent='Очки редкости: '+p;
+document.documentElement.style.setProperty('--tc',t[2]);document.body.style.setProperty('--tc',t[2]);
+$('badge').textContent=t[1];addSt();upd()}
+$('go').onclick=()=>{found++;render(rs())};
+
+$('info').onclick=()=>{const ix=cur,p=total(ix,seed),t=tierOf(p);$('dt').textContent=idf(seed)+' · '+t[1];
+$('tb').innerHTML=SLOTS.map(([n,v],k)=>{const w=W(v),pc=w[ix[k]]/w.reduce((a,b)=>a+b)*100;return `<tr><td>${n}</td><td>${v[ix[k]][0]}</td><td>+${v[ix[k]][1]}</td><td>${pc<1?pc.toFixed(2):pc.toFixed(1)}%</td></tr>`}).join('')+colRows(ix,seed)+`<tr><td colspan="2"><b>Итого</b></td><td><b>${p}</b></td><td></td></tr>`;
+$('dlg').showModal()};
+$('cls').onclick=()=>$('dlg').close();
+$('add').onclick=()=>{if(!mc.includes(seed)&&mc.length<LIM){mc.push(seed);save();addSt();upd()}};
+function showCol(){const L=mc.map(s=>{const ix=pick(s);return [s,ix,total(ix,s)]});if(byPts)L.sort((a,b)=>b[2]-a[2]);else L.reverse();
+$('ct').textContent='Коллекция';
+$('cs').textContent=L.length?`Слоты: ${L.length}/${LIM} · Рейтинг: ${L.reduce((a,x)=>a+x[2],0)} · Лучший: ${Math.max(...L.map(x=>x[2]))}`:'Пока пусто. Нажми «В коллекцию» под понравившимся грибом.';
+$('srt').textContent='Сортировка: '+(byPts?'по очкам':'по новизне');
+$('grid').innerHTML=L.map(([s,ix,p],i)=>{const t=tierOf(p);return `<div class="it" style="--c:${t[2]}"><button class="op" data-s="${s}"><svg viewBox="0 0 300 320">${dw(ix,s,'t'+i)}</svg><b>${t[1]}</b><br>${idf(s)} · ${p}</button><button class="del" data-d="${s}">Удалить</button></div>`}).join('');
+if(!$('cdlg').open)$('cdlg').showModal()}
+$('cbtn').onclick=showCol;$('ccl').onclick=()=>$('cdlg').close();
+$('srt').onclick=()=>{byPts=!byPts;showCol()};
+const rowsHtml=(ix,s)=>{const p=total(ix,s);return SLOTS.map(([n,v],k)=>{const w=W(v),pc=w[ix[k]]/w.reduce((a,b)=>a+b)*100;return `<tr><td>${n}</td><td>${v[ix[k]][0]}</td><td>+${v[ix[k]][1]}</td><td>${pc<1?pc.toFixed(2):pc.toFixed(1)}%</td></tr>`}).join('')+colRows(ix,s)+`<tr><td colspan="2"><b>Итого</b></td><td><b>${p}</b></td><td></td></tr>`};
+$('vid').onclick=()=>$('vdlg').showModal();
+$('tbl').onclick=()=>{const PR={0:75,1:15,2:6,3:3,5:1},H=t=>`<tr><td colspan="3" style="padding-top:14px"><b>${t}</b></td></tr>`;
+let h=SLOTS.map(([n,v])=>{const w=W(v),t=w.reduce((a,b)=>a+b);return H(n)+v.map(([nm,p],i)=>{const pc=w[i]/t*100;return `<tr><td>${nm}</td><td>+${p}</td><td>${pc<1?pc.toFixed(2):pc.toFixed(1)}%</td></tr>`}).join('')}).join('');
+h+=H('Цвета')+`<tr><td colspan="3" style="font-size:13px">У шляпки, узора, ножки, юбочки, пластинок, свечения и частиц (если элемент есть) свой цвет из 5760 вариантов. Код цвета даёт бонус, у соседних оттенков он может быть разным.</td></tr>`+Object.entries(PR).map(([b,p])=>`<tr><td>Бонус за код цвета</td><td>+${b}</td><td>${p}%</td></tr>`).join('');
+h+=H('Ступени редкости')+TIERS.map(t=>`<tr><td style="color:${t[2]}">${t[1]}</td><td colspan="2">от ${t[0]} очков</td></tr>`).join('');
+$('ttb').innerHTML=h;$('tdlg').showModal()};
+$('tcl').onclick=()=>$('tdlg').close();
+$('vcl').onclick=()=>$('vdlg').close();
+$('vin').onkeydown=e=>{if(e.key==='Enter')$('vgo').click()};
+$('vgo').onclick=()=>{const v=$('vin').value.trim().replace(/^№\s*/,'');if(!/^[0-9a-fA-F]{1,8}$/.test(v)){$('vmsg').textContent='Введи ID: до 8 символов 0-9 и A-F.';$('vres').innerHTML='';return}const s=parseInt(v,16),ix=pick(s),p=total(ix,s),t=tierOf(p);$('vmsg').textContent='Гриб можно только посмотреть, в коллекцию он не добавляется.';$('vres').innerHTML=`<svg viewBox="0 0 300 320" style="width:100%;max-height:42vh;display:block;margin-top:10px">${dw(ix,s,'v')}</svg><div class="row"><b>${idf(s)}</b><b style="color:${t[2]}">${t[1]}</b></div><div class="sub">Очки редкости: ${p}</div><table style="margin-top:8px">${rowsHtml(ix,s)}</table>`};
+$('grid').onclick=e=>{const d=e.target.closest('.del');if(d){const s=+d.dataset.d;if(confirm('Удалить гриб '+idf(s)+' из коллекции?')){mc=mc.filter(x=>x!==s);save();showCol();addSt();upd()}return}const b=e.target.closest('.op');if(b){$('cdlg').close();render(+b.dataset.s)}};
+$('dlg').onclick=e=>{if(e.target===$('dlg'))$('dlg').close()};
+found=1;render(rs());
+</script></body></html>
