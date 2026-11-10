@@ -176,7 +176,7 @@ return d.replaceAll('#cdbd9b',hh(C[2],0,-12)).replaceAll('#f2e8d0',hh(C[2],0,14)
 let seed=0,found=0,mc=[],byPts=true;
 
 const save=()=>{try{localStorage.setItem('mc2',JSON.stringify(mc))}catch(e){}};
-const LIM=50;
+const LIM=100;
 const rating=()=>mc.reduce((a,s)=>a+total(pick(s),s),0);
 const upd=()=>{$('cnt').textContent=(nick?nick+' · ':'')+'Найдено: '+found+' · Коллекция: '+mc.length+'/'+LIM+' · Рейтинг: '+rating()};
 const addSt=()=>{const has=mc.includes(seed),full=mc.length>=LIM;$('add').disabled=has||full||seed!==curSeed;$('add').textContent=has?'В коллекции ✓':full?'Коллекция полна':'В коллекцию'};
