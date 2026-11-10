@@ -34,6 +34,9 @@ summary{cursor:pointer;color:var(--mute);margin-top:10px;font-size:14px}
 #ttb td{color:var(--ink)}#ttb td:nth-child(2),#ttb td:nth-child(3){text-align:right;font-weight:400}#ttb td:nth-child(3){color:var(--mute);font-size:12px}
 #grid,#og{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
 .lk{background:none;color:var(--ink);padding:0;font:inherit;text-decoration:underline;cursor:pointer}
+.kr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}.kr button{padding:8px 10px;font-size:13px}
+h4{margin:14px 0 4px;font-size:14px;color:var(--mute)}
+.sell{width:100%;margin-top:6px;padding:6px;font-size:12px;background:#4b3b12;color:var(--ink)}
 .it{background:#0e1130;border:2px solid var(--c);border-radius:12px;padding:6px;text-align:center;font-size:13px}
 .it svg{width:100%;height:auto;display:block}
 .it b{color:var(--c)}
@@ -44,7 +47,7 @@ summary{cursor:pointer;color:var(--mute);margin-top:10px;font-size:14px}
 <div class="card" id="card">
 <div class="row"><span id="id"></span><span id="tier"></span></div>
 <div class="sub" id="pts"></div>
-<div class="btns"><button id="go">Найти гриб</button></div><div class="btns three" style="margin-top:8px"><button id="add">В коллекцию</button><button id="info">Состав</button><button id="cbtn">Коллекция</button></div><details id="more"><summary>Ещё</summary><div class="btns three"><button id="vid">Поиск по ID</button><button id="tbl">Таблица</button><button id="lb">Рейтинг</button></div></details>
+<div class="sub" id="res"></div><div class="btns"><button id="go">Найти гриб</button></div><div class="btns three" style="margin-top:8px"><button id="add">В коллекцию</button><button id="sellc">Продать</button></div><div class="btns three" style="margin-top:8px"><button id="info">Состав</button><button id="cbtn">Коллекция</button><button id="upg">Прокачка</button></div><details id="more"><summary>Ещё</summary><div class="btns three"><button id="vid">Поиск по ID</button><button id="tbl">Таблица</button><button id="lb">Рейтинг</button></div></details>
 
 <div class="sub" id="cnt" style="margin-top:8px"></div>
 </div></main>
@@ -55,6 +58,7 @@ summary{cursor:pointer;color:var(--mute);margin-top:10px;font-size:14px}
 <dialog id="ndlg"><b>Выбери ник</b><div class="sub">Он будет виден в мировом рейтинге.</div><div class="open"><input id="nin" maxlength="16" placeholder="Ник" autocomplete="off"><button id="ngo">Играть</button></div><div class="sub" id="nmsg"></div></dialog>
 <dialog id="ldlg"><div class="row"><b>Мировой рейтинг</b><button id="lcl">Закрыть</button></div><div class="sub" id="lme"></div><table id="ltb"></table></dialog>
 <dialog id="odlg"><div class="row"><b id="ot"></b><button id="ocl">Закрыть</button></div><div class="sub" id="os"></div><div id="og"></div></dialog>
+<dialog id="udlg"><div class="row"><b>Прокачка поиска</b><button id="ucl">Закрыть</button></div><div class="sub" id="ures"></div><div id="ubody"></div></dialog>
 <script>
 const $=s=>document.getElementById(s);
 const m32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
@@ -70,8 +74,10 @@ const SLOTS=[
 ['Свечение',[['нет',0],['слабое',10],['пятнами',18],['пульсирующее',28],['радужное',40]]],
 ['Частицы',[['нет',0],['споры',4],['пыльца',6],['светлячки',12],['искры',18]]],
 ['Аномалия',[['нет',0],['прозрачность',25],['второй гриб',35],['кристаллы',40],['тень',50]]]];
-const TIERS=[[0,'обычный','#9aa3b5'],[30,'необычный','#6fcf8a'],[47,'редкий','#5aa2ff'],[59,'очень редкий','#35d6d0'],[71,'эпический','#b57bff'],[83,'легендарный','#ffc94d'],[95,'мифический','#ff7a5c'],[108,'уникальный','#ff5fd0']];
-SLOTS.forEach(([n,v])=>{const w=v.map(x=>(1+x[1])**-1.5),m=Math.max(...w);v.forEach((x,i)=>{x[2]=w[i];x[1]=Math.round(3*Math.log2(m/w[i]))})});
+const TIERS=[[0,'обычный','#9aa3b5'],[37,'необычный','#6fcf8a'],[47,'редкий','#5aa2ff'],[55,'очень редкий','#35d6d0'],[63,'эпический','#b57bff'],[70,'легендарный','#ffc94d'],[77,'мифический','#ff7a5c'],[85,'уникальный','#ff5fd0'],[95,'реликтовый','#c7a46b'],[105,'древний','#8bbf5a'],[115,'артефактный','#4fc3c9'],[125,'сакральный','#f6efd2'],[135,'божественный','#ffe066'],[145,'астральный','#8f8cff'],[155,'космический','#3d6bff'],[165,'трансцендентный','#ff4fd8']];
+[[2,'тематический'],[3,'тематическая'],[5,'тематическая'],[8,'тематическое'],[9,'тематические'],[10,'тематическая']].forEach(([k,n])=>SLOTS[k][1].push([n,0]));
+const THS=[2,3,5,8,9,10],Q=0.08828,TW=[0.28202,0.21162,0.15413,0.11452,0.08533,0.06328,0.04726,0.04185],THQ=3;
+SLOTS.forEach(([n,v],k)=>{const th=THS.includes(k),w=(th?v.slice(0,-1):v).map(x=>(1+x[1])**-1.5);if(th)w.push(w.reduce((a,c)=>a+c,0)*Q/(1-Q));const m=Math.max(...w);v.forEach((x,i)=>{x[2]=w[i];x[1]=Math.round(3*Math.log2(m/w[i]))})});
 const W=v=>v.map(x=>x[2]);
 function pick(seed){const r=m32(seed);return SLOTS.map(([n,v])=>{const w=W(v);let t=r()*w.reduce((a,b)=>a+b);for(let i=0;i<w.length;i++){t-=w[i];if(t<=0)return i}return 0})}
 const act=ix=>[1,ix[2]>0,1,ix[5]>0,1,ix[8]>0,ix[9]>0];
@@ -83,7 +89,10 @@ for(const a of hs){let f=0,ok=true;for(const c of hs){if(dh(c,a)>15){if(dh(c,(a+
 for(const a of hs){const z=[0,0,0];let ok=true;for(const c of hs){if(dh(c,a)<=15)z[0]++;else if(dh(c,(a+120)%360)<=15)z[1]++;else if(dh(c,(a+240)%360)<=15)z[2]++;else{ok=false;break}}if(ok&&z[0]&&z[1]&&z[2]){m|=8;break}}
 return m}
 function harm(ix,s){const C=colors(s),a=act(ix),hs=[0,1,2,3,4].filter(k=>a[k]).map(k=>C[k].h),n=hs.length,m=hmask(hs);let b=null;for(let i=0;i<4;i++)if((m&(1<<i))&&(!b||HPT[n][i]>b.p))b={i,n,p:HPT[n][i]};return b}
-const total=(ix,s)=>{const h=harm(ix,s);return ix.reduce((a,i,k)=>a+SLOTS[k][1][i][1],0)+(h?h.p:0)};
+function themes(seed,ix){const r=m32(seed^0x71a3c5);return ix.map((v,k)=>{if(!THS.includes(k)||v!==SLOTS[k][1].length-1)return -1;let t=r(),i=0;for(;i<7;i++){if(t<TW[i])break;t-=TW[i]}return i})}
+function themeTier(ix,s){const c=[0,0,0,0,0,0,0,0];themes(s,ix).forEach(t=>{if(t>=0)c[t]++});for(let t=7;t>=0;t--)if(c[t]>=THQ)return t;return -1}
+const raw=(ix,s)=>{const h=harm(ix,s);return ix.reduce((a,i,k)=>a+SLOTS[k][1][i][1],0)+(h?h.p:0)};
+const total=(ix,s)=>{const t=themeTier(ix,s);return t>=0?TIERS[8+t][0]:Math.min(raw(ix,s),TIERS[8][0]-1)};
 const tierOf=p=>TIERS.filter(t=>p>=t[0]).pop();
 
 /* background */
@@ -106,20 +115,60 @@ const CN=['шляпка','узор','ножка','юбочка','пластин�
 function colors(seed){const r=m32(seed^0x7f4a7c15);return CN.map((n,k)=>{const h=Math.floor(r()*360),si=Math.floor(r()*4),li=Math.floor(r()*4);return{h,s:SAT[si],l:LIG[li]}})}
 const hh=(c,d,dl=0,ds=0)=>`hsl(${(c.h+d+360)%360} ${Math.min(100,c.s+ds)}% ${Math.max(5,Math.min(95,c.l+dl))}%)`;
 const hex=c=>{const l=c.l/100,a=c.s/100*Math.min(l,1-l),f=n=>{const k=(n+c.h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))).toString(16).padStart(2,'0')};return('#'+f(0)+f(8)+f(4)).toUpperCase()};
-const colRows=(ix,s)=>{const a=act(ix),h=harm(ix,s);return colors(s).map((c,k)=>a[k]?`<tr><td>Цвет: ${CN[k]}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${hh(c,0)};vertical-align:-1px"></span> ${hex(c)}</td><td></td><td></td></tr>`:'').join('')+(h?`<tr><td>Гармония</td><td>${HN[h.i]}</td><td>+${h.p}</td><td>${(HPR[h.n][h.i]*100).toFixed(2)}%</td></tr>`:'')};
+const colRows0=(ix,s)=>{const a=act(ix),h=harm(ix,s);return colors(s).map((c,k)=>a[k]?`<tr><td>Цвет: ${CN[k]}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${hh(c,0)};vertical-align:-1px"></span> ${hex(c)}</td><td></td><td></td></tr>`:'').join('')+(h?`<tr><td>Гармония</td><td>${HN[h.i]}</td><td>+${h.p}</td><td>${(HPR[h.n][h.i]*100).toFixed(2)}%</td></tr>`:'')};
+const themeRows=(ix,s)=>{const t=themeTier(ix,s),r=raw(ix,s);if(t>=0)return `<tr><td>Тема</td><td>${TV[t].n} ×${themes(s,ix).filter(x=>x===t).length}</td><td>=${TIERS[8+t][0]}</td><td></td></tr>`;return r>TIERS[8][0]-1?`<tr><td>Предел без темы</td><td></td><td>${TIERS[8][0]-1}</td><td></td></tr>`:''};
+const colRows=(ix,s)=>colRows0(ix,s)+themeRows(ix,s);
 const rs=()=>crypto.getRandomValues(new Uint32Array(1))[0];
 const idf=s=>'№ '+s.toString(16).toUpperCase().padStart(8,'0');
 
 const star=(x,y,r)=>`${x},${y-r} ${x+r*.3},${y-r*.3} ${x+r},${y} ${x+r*.3},${y+r*.3} ${x},${y+r} ${x-r*.3},${y+r*.3} ${x-r},${y} ${x-r*.3},${y-r*.3}`;
 const stem=(cx,w,b)=>{const L=cx-w/2,R=cx+w/2;return `<path d="M${L},${cy}C${L+b},${cy+45} ${L-b},${cy+90} ${L-8},282L${R+8},282C${R-b},${cy+90} ${R+b},${cy+45} ${R},${cy}Z" fill="url(#sg)"/>`};
 
+
+/* темы верхних ступеней */
+const TV=[
+{n:'Реликтовый',c:['#c7a46b','#7a5a35','#efe0b8'],g:'M-1,0A1,1 0 1,1 1,0M-.3,-.3L.3,.3',f:0,x:'crack',t:'M-1,.8L-.4,-.9L.2,-.2L.9,-1L.6,.8Z',tf:1},
+{n:'Древний',c:['#8bbf5a','#3f6b2d','#d9f0b0'],g:'M0,-1V1M-.7,-.5L0,0L.7,-.5M-.5,.4L0,.8L.5,.4',f:0,x:'moss',t:'M0,1V-.1M0,.1C-1,0-1,-.9-.1,-1M0,.3C1,.2 1,-.6 .1,-.8',tf:0},
+{n:'Артефактный',c:['#4fc3c9','#cfd8e0','#27505c'],g:'M0,-1L.8,-.2L0,1L-.8,-.2Z',f:1,x:'hatch',t:'M-1,.6L-.9,-.6L-.4,0L0,-.9L.4,0L.9,-.6L1,.6Z',tf:1},
+{n:'Сакральный',c:['#f6efd2','#d9b95a','#ffffff'],g:'M-1,0A1,1 0 1,0 1,0A1,1 0 1,0 -1,0M0,-1V1M-1,0H1',f:0,x:'rings',t:'M0,-1L.9,.7L-.9,.7Z',tf:0},
+{n:'Божественный',c:['#ffe066','#ffb300','#fffbe0'],g:'M0,-1V-.5M0,1V.5M-1,0H-.5M1,0H.5M-.7,-.7L-.35,-.35M.7,-.7L.35,-.35M-.7,.7L-.35,.35M.7,.7L.35,.35',f:0,x:'rays',t:'M-1,0A1,.3 0 1,0 1,0A1,.3 0 1,0 -1,0',tf:0},
+{n:'Астральный',c:['#8f8cff','#4de3ff','#d8d6ff'],g:'M-1,.6L-.3,-.5L.4,.2L1,-.7',f:0,x:'const',t:'M.5,-1A1,1 0 1,0 .5,1A.75,.75 0 1,1 .5,-1Z',tf:1},
+{n:'Космический',c:['#3d6bff','#d66bff','#ffffff'],g:'M0,-1L.25,-.25L1,0L.25,.25L0,1L-.25,.25L-1,0L-.25,-.25Z',f:1,x:'nebula',t:'M-.6,0a.6,.6 0 1,0 1.2,0a.6,.6 0 1,0 -1.2,0M-1.1,.1A1.1,.3 0 0,0 1.1,-.1',tf:0},
+{n:'Трансцендентный',c:['#ff4fd8','#4fffd0','#ffe94f'],g:'M0,-1L.9,.7L-.9,.7ZM0,-.5L.45,.35L-.45,.35Z',f:0,x:'iri',t:'M0,0C.4,-.8 1,-.8 1,0C1,.8 .4,.8 0,0C-.4,-.8 -1,-.8 -1,0C-1,.8 -.4,.8 0,0Z',tf:0}];
+const GP=(t,x,y,r,o=1,rot=0)=>{const v=TV[t];return `<path d="${v.g}" transform="translate(${x} ${y}) rotate(${rot}) scale(${r})" fill="${v.f?v.c[0]:'none'}" stroke="${v.c[1]}" stroke-width="1.6" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round" opacity="${o}"/>`};
+function tTex(t,rn,cy){const v=TV[t],c=v.c;let s='';const X=()=>rn(60,240),Y=()=>rn(cy-100,cy);
+switch(v.x){
+case 'crack':for(let i=0;i<6;i++){let x=X(),y=Y(),p=`M${x},${y}`;for(let k=0;k<4;k++){x+=rn(-14,14);y+=rn(4,16);p+=`L${x},${y}`}s+=`<path d="${p}" stroke="${c[1]}" fill="none" stroke-width="1.6" opacity=".8"/>`}break;
+case 'moss':for(let i=0;i<22;i++)s+=`<circle cx="${X()}" cy="${rn(cy-30,cy)}" r="${rn(2,6)}" fill="${c[i%2?0:1]}" opacity=".75"/>`;break;
+case 'hatch':for(let x=40;x<260;x+=12)s+=`<path d="M${x},${cy-110}L${x+50},${cy+5}" stroke="${c[1]}" stroke-width=".9" opacity=".55"/>`;break;
+case 'rings':for(let i=0;i<5;i++)s+=`<circle cx="${rn(90,210)}" cy="${rn(cy-70,cy-10)}" r="${rn(14,26)}" fill="none" stroke="${c[1]}" stroke-width="1.2" opacity=".6"/>`;break;
+case 'rays':for(let i=-6;i<7;i++)s+=`<path d="M150,${cy-90}L${150+i*26},${cy+5}" stroke="${c[2]}" stroke-width="3" opacity=".35"/>`;break;
+case 'const':{let p='';for(let i=0;i<7;i++)p+=(i?'L':'M')+X()+','+Y();s+=`<path d="${p}" fill="none" stroke="${c[1]}" stroke-width="1.2" opacity=".8"/>`;for(let i=0;i<8;i++)s+=`<circle cx="${X()}" cy="${Y()}" r="2.2" fill="${c[2]}"/>`}break;
+case 'nebula':for(let i=0;i<4;i++)s+=`<circle cx="${rn(80,220)}" cy="${rn(cy-80,cy-10)}" r="${rn(25,45)}" fill="${c[i%2]}" opacity=".35" filter="url(#bl)"/>`;for(let i=0;i<25;i++)s+=`<circle cx="${X()}" cy="${Y()}" r="${rn(.6,1.6)}" fill="#fff"/>`;break;
+default:for(let i=0;i<6;i++)s+=`<path d="M${40+i*45},${cy-110}L${i*45-10},${cy+5}" stroke="hsl(${i*60} 90% 65%)" stroke-width="14" opacity=".35"/>`}
+return s}
+const tRing=(t,rx,y)=>{const c=TV[t].c;let s=`<ellipse cx="150" cy="${y}" rx="${rx+6}" ry="8" fill="none" stroke="${c[0]}" stroke-width="4"/><ellipse cx="150" cy="${y}" rx="${rx+6}" ry="8" fill="none" stroke="${c[1]}" stroke-width="1.5" stroke-dasharray="3 5"/>`;for(let i=0;i<6;i++){const a=i/6*Math.PI*2;s+=GP(t,150+Math.cos(a)*(rx+6),y+Math.sin(a)*8,4)}return s};
+const tGlow=(t,y)=>{const c=TV[t].c;return `<circle cx="150" cy="${y}" r="120" fill="${t==7?'url(#rb)':c[0]}" opacity=".35" filter="url(#bl)"/><circle cx="150" cy="${y}" r="70" fill="${c[1]}" opacity=".22" filter="url(#bl)"/>`};
+const tTop=(t,x,y)=>{const v=TV[t];return `<path d="${v.t}" transform="translate(${x} ${y}) scale(16)" fill="${v.tf?v.c[0]:'none'}" stroke="${v.c[1]}" stroke-width="2" vector-effect="non-scaling-stroke" stroke-linejoin="round" stroke-linecap="round"/>`};
+function sig(t,rn){const c=TV[t].c;let s='';const hx=i=>[150+125*Math.cos(i*Math.PI/3),150+125*Math.sin(i*Math.PI/3)];
+switch(t){
+case 0:s+=`<circle cx="150" cy="150" r="125" fill="none" stroke="${c[0]}" stroke-width="3" stroke-dasharray="40 14 8 20" opacity=".35"/>`;break;
+case 1:for(let i=0;i<10;i++){const a=i/10*Math.PI*2;s+=GP(1,150+Math.cos(a)*120,150+Math.sin(a)*120,10,.55,a*57)}break;
+case 2:s+=`<polygon points="${[0,1,2,3,4,5].map(i=>hx(i).join(',')).join(' ')}" fill="none" stroke="${c[1]}" stroke-width="3" opacity=".45"/>`+[0,1,2,3,4,5].map(i=>`<circle cx="${hx(i)[0]}" cy="${hx(i)[1]}" r="6" fill="${c[0]}"/>`).join('');break;
+case 3:for(let i=0;i<7;i++){const a=i/6*Math.PI*2;s+=`<circle cx="${150+(i?55*Math.cos(a):0)}" cy="${150+(i?55*Math.sin(a):0)}" r="55" fill="none" stroke="${c[1]}" stroke-width="1.5" opacity=".5"/>`}break;
+case 4:for(let i=0;i<16;i++){const a=i/16*Math.PI*2;s+=`<path d="M150,150L${150+Math.cos(a-.06)*190},${150+Math.sin(a-.06)*190}L${150+Math.cos(a+.06)*190},${150+Math.sin(a+.06)*190}Z" fill="${c[0]}" opacity=".18"/>`}break;
+case 5:{let p='';for(let i=0;i<9;i++){const x=rn(20,280),y=rn(20,200);p+=(i?'L':'M')+x+','+y;s+=`<circle cx="${x}" cy="${y}" r="3" fill="${c[1]}"/>`}s+=`<path d="${p}" fill="none" stroke="${c[0]}" stroke-width="1.4" opacity=".6"/>`}break;
+case 6:for(let i=0;i<60;i++)s+=`<circle cx="${rn(0,300)}" cy="${rn(0,290)}" r="${rn(.6,1.8)}" fill="#fff" opacity="${rn(.4,1)}"/>`;s+=`<circle cx="90" cy="110" r="70" fill="${c[1]}" opacity=".25" filter="url(#bl)"/><circle cx="220" cy="140" r="80" fill="${c[0]}" opacity=".28" filter="url(#bl)"/>`;break;
+default:for(let i=0;i<5;i++)s+=`<circle cx="150" cy="150" r="${40+i*22}" fill="none" stroke="hsl(${i*70} 90% 65%)" stroke-width="4" stroke-dasharray="30 12" opacity=".45"><animateTransform attributeName="transform" type="rotate" from="0 150 150" to="${i%2?-360:360} 150 150" dur="${12+i*3}s" repeatCount="indefinite"/></circle>`}
+return s}
 function draw(ix,seed){
-const g=m32(seed^0x5bd1e995),rn=(a,b)=>a+g()*(b-a);
+const g=m32(seed^0x5bd1e995),rn=(a,b)=>a+g()*(b-a);const th=themes(seed,ix),tt=themeTier(ix,seed);
 const [sh,col,pat,tex,st,rg,gl,bs,gw,pt,an]=ix,[cd,CW,top]=CAPS[sh],C=colors(seed),cc=C[0],gc=hh(C[5],0,35,40);
 const P=col==1?[hh(cc,0,-14),hh(cc,0,0),hh(cc,45,18)]:col==2?[hh(cc,0,8,10),hh(cc,40,28,15),hh(cc,-40,40,20)]:[hh(cc,0,-14),hh(cc,0,0),hh(cc,0,14)];
 const pc=hh(C[1],0,20);
 let d=`<defs><linearGradient id="cg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${P[2]}"/><stop offset=".55" stop-color="${P[1]}"/><stop offset="1" stop-color="${P[0]}"/></linearGradient><linearGradient id="sg"><stop offset="0" stop-color="#cdbd9b"/><stop offset=".45" stop-color="#f2e8d0"/><stop offset="1" stop-color="#cdbd9b"/></linearGradient><linearGradient id="rb" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5f6d"/><stop offset=".25" stop-color="#ffe45f"/><stop offset=".5" stop-color="#5fff9a"/><stop offset=".75" stop-color="#5fb7ff"/><stop offset="1" stop-color="#d45fff"/></linearGradient><filter id="bl" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter><filter id="b3" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="3"/></filter><filter id="blk"><feGaussianBlur stdDeviation="2"/><feColorMatrix values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 .7 0"/></filter><clipPath id="cc"><path d="${cd}"/></clipPath></defs>`;
 d+=`<ellipse cx="150" cy="284" rx="75" ry="8" fill="#05061a" opacity=".5"/>`;
+if(tt>=0)d+=sig(tt,rn);if(gw==5)d+=tGlow(th[8],cy-30);
 if(gw==1)d+=`<circle cx="150" cy="${cy-30}" r="110" fill="${gc}" opacity=".22" filter="url(#bl)"/>`;
 if(gw==2)d+=`<circle cx="150" cy="${cy-30}" r="100" fill="${gc}" opacity=".12" filter="url(#bl)"/>`;
 if(gw==3)d+=`<circle cx="150" cy="${cy-30}" r="120" fill="${gc}" opacity=".3" filter="url(#bl)"><animate attributeName="opacity" values=".12;.55;.12" dur="2.6s" repeatCount="indefinite"/></circle>`;
@@ -135,6 +184,7 @@ if(bs==2)for(let i=0;i<8;i++)d+=`<circle cx="${rn(112,188)}" cy="${rn(274,284)}"
 if(bs==4)d+=`<ellipse cx="150" cy="284" rx="95" ry="14" fill="none" stroke="#cfe8ff" opacity=".6" stroke-width="3" stroke-dasharray="2 6"/>`;
 /* ring */
 const rx=st==4?42:st==1?32:24,ry=cy+34;
+if(rg==5)d+=tRing(th[5],rx,ry);
 if(rg==1)d+=`<ellipse cx="150" cy="${ry}" rx="${rx}" ry="6" fill="#f4ead2" stroke="#bfae88"/>`;
 if(rg==2)d+=`<ellipse cx="150" cy="${ry}" rx="${rx}" ry="7" fill="#fff" stroke="#bfae88" stroke-width="3" stroke-dasharray="3 3"/>`;
 if(rg==3)d+=`<ellipse cx="150" cy="${ry+12}" rx="${rx-4}" ry="5" fill="#e6d9b8" stroke="#bfae88"/><ellipse cx="150" cy="${ry}" rx="${rx}" ry="6" fill="#f4ead2" stroke="#bfae88"/>`;
@@ -146,7 +196,9 @@ if(pat==2)for(let i=0;i<6;i++)d+=`<circle cx="${rn(75,225)}" cy="${rn(cy-75,cy-1
 if(pat==3)for(let i=-4;i<5;i++)d+=`<path d="M${150+i*5},${cy-115}Q${150+i*22},${cy-40} ${150+i*24},${cy+5}" stroke="${pc}" stroke-width="3" fill="none" opacity=".7"/>`;
 if(pat==4)for(let i=0;i<4;i++)d+=`<ellipse cx="150" cy="${cy+5}" rx="${20+i*22}" ry="${12+i*18}" stroke="${pc}" stroke-width="3" fill="none" opacity=".7"/>`;
 if(pat==5)for(let x=0;x<300;x+=20)d+=`<path d="M${x},${cy-120}L${x+60},${cy+10}M${x+60},${cy-120}L${x},${cy+10}" stroke="${pc}" stroke-width="1.5" opacity=".6"/>`;
+if(pat==7)for(let i=0;i<7;i++)d+=GP(th[2],rn(80,220),rn(cy-75,cy-14),rn(7,11),.9,rn(-20,20));
 if(pat==6)for(let i=0;i<7;i++)d+=`<polygon points="${star(rn(75,225),rn(cy-75,cy-12),rn(5,9))}" fill="${pc}" opacity=".9"/>`;
+if(tex==5)d+=tTex(th[3],rn,cy);
 if(tex==1)for(let i=0;i<50;i++)d+=`<circle cx="${rn(50,250)}" cy="${rn(cy-110,cy)}" r="1.2" fill="#fff" opacity=".2"/>`;
 if(tex==2){let p='';for(let y=cy-110;y<cy+8;y+=14)for(let x=(y/14|0)%2?50:59;x<250;x+=18)p+=`M${x},${y}q9,10 18,0`;d+=`<path d="${p}" stroke="#000" opacity=".25" fill="none"/>`}
 if(tex==3)d+=`<ellipse cx="122" cy="${top+28}" rx="26" ry="9" fill="#fff" opacity=".35" transform="rotate(-25 122 ${top+28})"/>`;
@@ -159,10 +211,12 @@ const gr=CW*.82,n=[7,18,14,12][gl];d+=`<ellipse cx="150" cy="${cy+4}" rx="${gr}"
 for(let i=0;i<n;i++){const t=(i+.5)/n*2-1,x=150+gr*t,h=8*Math.sqrt(1-t*t),c=gl==3?['#ff7ad9','#7affd9','#ffd97a'][i%3]:'#7a5560';
 d+=gl==2?`<line x1="150" y1="${cy+4}" x2="${150+gr*Math.cos(i/(n-1)*Math.PI)}" y2="${cy+4+8*Math.sin(i/(n-1)*Math.PI)}" stroke="${c}"/>`:`<line x1="${x}" y1="${cy+4-h}" x2="${x}" y2="${cy+4+h}" stroke="${c}"/>`}
 /* anomalies on cap */
+if(an==5)d+=tTop(th[10],150,top-14);
 if(an==2){const mx=150+rn(-20,20),ty=top+8;d+=`<rect x="${mx-3}" y="${ty-12}" width="6" height="14" fill="#e9dcc0"/><path d="${dome(16,12,ty-10,mx)}" fill="${P[2]}"/>`}
 if(an==3)for(let i=0;i<5;i++){const x=150+(i-2)*22,h=rn(28,48);d+=`<polygon points="${x-8},${top+12} ${x+rn(-3,3)},${top-h} ${x+8},${top+12}" fill="#bfeaff" opacity=".8" stroke="#fff" stroke-opacity=".6"/>`}
 d+=`</g>`;
 /* particles */
+if(pt==5)for(let i=0;i<16;i++)d+=GP(th[9],rn(30,270),rn(50,280),rn(3,6),rn(.5,.95),rn(0,360));
 const N=pt==3?9:pt==4?10:22;
 for(let i=0;i<N&&pt;i++){const x=rn(30,270),y=rn(50,280),a=`<animate attributeName="opacity" values=".2;1;.2" dur="${rn(1.8,3.6).toFixed(1)}s" repeatCount="indefinite"/>`;
 if(pt==1)d+=`<circle cx="${x}" cy="${y}" r="${rn(1.5,3)}" fill="#d9e6ff" opacity=".7"/>`;
@@ -176,9 +230,12 @@ return d.replaceAll('#cdbd9b',hh(C[2],0,-12)).replaceAll('#f2e8d0',hh(C[2],0,14)
 let seed=0,found=0,mc=[],byPts=true;
 
 const save=()=>{try{localStorage.setItem('mc2',JSON.stringify(mc))}catch(e){}};
-const LIM=100;
+let LIM=50,gold=0,slvl=0,kk=1,asl=0,ncost=null;
+const SELL=[1,3,5,9,17,32,60,110,200,390,740,1300,2500,4600,8500,16000],KT=[1,2,3,5,8,13,21,34,55,89,144],SC=[440,1400,3600,10000,29000,81000,230000,630000,1800000,4900000],fmt=n=>Number(n).toLocaleString('ru'),sellP=p=>SELL[TIERS.indexOf(tierOf(p))];
+const resTxt=()=>{$('res').textContent='Сумеречное золото: '+fmt(gold)+' · Поиск: ур. '+slvl+' ('+kk+' канд.)'};
+function apply(r){if(r.limit)LIM=r.limit;if(r.gold!=null){gold=Number(r.gold);slvl=r.search_lvl;kk=r.k;asl=r.autosell;ncost=r.next_cost}if(r.collection)mc=r.collection.map(x=>Number(x.seed)).reverse();if('current' in r)curSeed=r.current==null?null:Number(r.current)}
 const rating=()=>mc.reduce((a,s)=>a+total(pick(s),s),0);
-const upd=()=>{$('cnt').textContent=(nick?nick+' · ':'')+'Найдено: '+found+' · Коллекция: '+mc.length+'/'+LIM+' · Рейтинг: '+rating()};
+const upd=()=>{$('cnt').textContent=(nick?nick+' · ':'')+'Найдено: '+found+' · Коллекция: '+mc.length+'/'+LIM+' · Рейтинг: '+rating();resTxt();const ok=window.cur&&curSeed!=null&&seed===curSeed&&!mc.includes(seed);$('sellc').disabled=!ok;$('sellc').textContent=ok?'Продать за '+sellP(total(window.cur,seed)):'Продать'};
 const addSt=()=>{const has=mc.includes(seed),full=mc.length>=LIM;$('add').disabled=has||full||seed!==curSeed;$('add').textContent=has?'В коллекции ✓':full?'Коллекция полна':'В коллекцию'};
 const dw=(ix,s,p)=>draw(ix,s).replace(/id="(\w+)"/g,`id="$1${p}"`).replace(/url\(#(\w+)\)/g,`url(#$1${p})`).replace(/href="#(\w+)"/g,`href="#$1${p}"`);
 function render(s){seed=s;const ix=pick(s),p=total(ix,s),t=tierOf(p);window.cur=ix;
@@ -187,18 +244,19 @@ for(const e of[$('stage'),$('badge')]){e.classList.remove('pop');void e.getBound
 $('id').textContent=idf(s);$('tier').textContent=t[1];$('pts').textContent='Очки редкости: '+p;
 document.documentElement.style.setProperty('--tc',t[2]);document.body.style.setProperty('--tc',t[2]);
 $('badge').textContent=t[1];addSt();upd()}
-$('go').onclick=async()=>{const b=$('go');b.disabled=true;try{const r=await api('find');if(r.seed!=null){curSeed=Number(r.seed);found++;render(curSeed)}else if(r.error!=='slow')$('pts').textContent='Ошибка связи, попробуй ещё раз.'}catch(e){$('pts').textContent='Нет связи с сервером.'}b.disabled=false};
+$('go').onclick=async()=>{const b=$('go');b.disabled=true;try{const r=await api('find');if(r.seed!=null){apply(r);found++;render(Number(r.seed));if(r.sold)$('pts').textContent+=' · продан автоматически за '+r.sold}else if(r.error!=='slow')$('pts').textContent='Ошибка связи, попробуй ещё раз.'}catch(e){$('pts').textContent='Нет связи с сервером.'}b.disabled=false};
 
 $('info').onclick=()=>{const ix=cur,p=total(ix,seed),t=tierOf(p);$('dt').textContent=idf(seed)+' · '+t[1];
 $('tb').innerHTML=SLOTS.map(([n,v],k)=>{const w=W(v),pc=w[ix[k]]/w.reduce((a,b)=>a+b)*100;return `<tr><td>${n}</td><td>${v[ix[k]][0]}</td><td>+${v[ix[k]][1]}</td><td>${pc<1?pc.toFixed(2):pc.toFixed(1)}%</td></tr>`}).join('')+colRows(ix,seed)+`<tr><td colspan="2"><b>Итого</b></td><td><b>${p}</b></td><td></td></tr>`;
 $('dlg').showModal()};
 $('cls').onclick=()=>$('dlg').close();
-$('add').onclick=async()=>{$('add').disabled=true;const r=await api('claim').catch(()=>({}));if(r.ok){mc.push(seed);addSt();upd()}else{$('add').textContent=r.error==='full'?'Коллекция полна':'Не удалось'}};
+$('add').onclick=async()=>{$('add').disabled=true;const r=await api('claim').catch(()=>({}));if(r.ok){apply(r);addSt();upd()}else{$('add').textContent=r.error==='full'?'Коллекция полна':'Не удалось'}};
+$('sellc').onclick=async()=>{$('sellc').disabled=true;const r=await api('sell_current').catch(()=>({}));if(r.ok){apply(r);addSt();upd()}};
 function showCol(){const L=mc.map(s=>{const ix=pick(s);return [s,ix,total(ix,s)]});if(byPts)L.sort((a,b)=>b[2]-a[2]);else L.reverse();
 $('ct').textContent='Коллекция';
 $('cs').textContent=L.length?`Слоты: ${L.length}/${LIM} · Рейтинг: ${L.reduce((a,x)=>a+x[2],0)} · Лучший: ${Math.max(...L.map(x=>x[2]))}`:'Пока пусто. Нажми «В коллекцию» под понравившимся грибом.';
 $('srt').textContent='Сортировка: '+(byPts?'по очкам':'по новизне');
-$('grid').innerHTML=L.map(([s,ix,p],i)=>{const t=tierOf(p);return `<div class="it" style="--c:${t[2]}"><button class="op" data-s="${s}"><svg viewBox="0 0 300 320">${dw(ix,s,'t'+i)}</svg><b>${t[1]}</b><br>${idf(s)} · ${p}</button><button class="del" data-d="${s}">Удалить</button></div>`}).join('');
+$('grid').innerHTML=L.map(([s,ix,p],i)=>{const t=tierOf(p);return `<div class="it" style="--c:${t[2]}"><button class="op" data-s="${s}"><svg viewBox="0 0 300 320">${dw(ix,s,'t'+i)}</svg><b>${t[1]}</b><br>${idf(s)} · ${p}</button><button class="sell" data-d="${s}">Продать за ${sellP(p)}</button><button class="del" data-d="${s}">Удалить</button></div>`}).join('');
 if(!$('cdlg').open)$('cdlg').showModal()}
 $('cbtn').onclick=showCol;$('ccl').onclick=()=>$('cdlg').close();
 $('srt').onclick=()=>{byPts=!byPts;showCol()};
@@ -207,7 +265,7 @@ $('vid').onclick=()=>$('vdlg').showModal();
 $('tbl').onclick=()=>{const H=t=>`<tr><td colspan="3" style="padding-top:14px"><b>${t}</b></td></tr>`;
 let h=SLOTS.map(([n,v])=>{const w=W(v),t=w.reduce((a,b)=>a+b);return H(n)+v.map(([nm,p],i)=>{const pc=w[i]/t*100;return `<tr><td>${nm}</td><td>+${p}</td><td>${pc<1?pc.toFixed(2):pc.toFixed(1)}%</td></tr>`}).join('')}).join('');
 h+=H('Гармония цветов')+`<tr><td colspan="3" style="font-size:13px">Если оттенки шляпки, ножки и пластинок (а также узора и юбочки, если они есть) складываются в гармонию, гриб получает бонус. Чем больше элементов участвует, тем он ценнее. Ниже очки при 3, 4 и 5 цветах и шанс при 3 цветах.</td></tr>`+HN.map((nm,i)=>`<tr><td>${nm}</td><td>+${HPT[3][i]} / +${HPT[4][i]} / +${HPT[5][i]}</td><td>${(HPR[3][i]*100).toFixed(1)}%</td></tr>`).join('');
-h+=H('Ступени редкости')+TIERS.map(t=>`<tr><td style="color:${t[2]}">${t[1]}</td><td colspan="2">от ${t[0]} очков</td></tr>`).join('');
+h+=H('Ступени редкости')+TIERS.map(t=>`<tr><td style="color:${t[2]}">${t[1]}</td><td colspan="2">${TIERS.indexOf(t)>=8?'по теме (3+ элемента)':'от '+t[0]+' очков'} · ${SELL[TIERS.indexOf(t)]} зол.</td></tr>`).join('');
 $('ttb').innerHTML=h;$('tdlg').showModal()};
 $('tcl').onclick=()=>$('tdlg').close();
 const SB='https://ypxhtcyvhwrzigtcoulv.supabase.co',PK='sb_publishable_CjOrVigjNYQ4DphVZ-DpXQ_wIzwI3nF';
@@ -218,9 +276,16 @@ async function au(p,b){const r=await fetch(SB+'/auth/v1/'+p,{method:'POST',heade
 async function session(){sess=sess||ls('sb');if(sess&&sess.expires_at>Date.now()/1000+60)return sess;if(sess&&sess.refresh_token){try{sess=await au('token?grant_type=refresh_token',{refresh_token:sess.refresh_token});ls('sb',sess);return sess}catch(e){if(!(e.status>=400&&e.status<500))throw e}}sess=await au('signup',{data:{},gotrue_meta_security:{}});ls('sb',sess);return sess}
 async function api(action,x){const s=await session(),r=await fetch(SB+'/functions/v1/game',{method:'POST',headers:{apikey:PK,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json'},body:JSON.stringify({action,...x})});return r.json().catch(()=>({error:'server'}))}
 function askNick(){return new Promise(res=>{const d=$('ndlg');d.oncancel=e=>e.preventDefault();$('ngo').onclick=async()=>{const r=await api('nick',{nickname:$('nin').value});if(r.ok){nick=r.nickname;d.close();res()}else $('nmsg').textContent=r.error==='taken'?'Этот ник занят.':r.error==='bad_nick'?'Ник: 3-16 символов, буквы, цифры, пробел, _ и -.':'Ошибка, попробуй ещё раз.'};d.showModal()})}
-async function boot(){try{const st=await api('state');if(st.error)throw 0;nick=st.nickname;curSeed=st.current==null?null:Number(st.current);mc=st.collection.map(x=>Number(x.seed)).reverse();if(!nick)await askNick();if(curSeed!=null)render(curSeed);else{$('pts').textContent='Нажми «Найти гриб»';addSt();upd()}}catch(e){$('pts').textContent='Нет связи с сервером. Обнови страницу.'}}
+async function boot(){try{const st=await api('state');if(st.error)throw 0;nick=st.nickname;apply(st);if(!nick)await askNick();if(curSeed!=null)render(curSeed);else{$('pts').textContent='Нажми «Найти гриб»';addSt();upd()}}catch(e){$('pts').textContent='Нет связи с сервером. Обнови страницу.'}}
 $('lcl').onclick=()=>$('ldlg').close();
 $('ocl').onclick=()=>$('odlg').close();
+function uRender(){let h='<h4>Поиск: ур. '+slvl+' · '+kk+' канд. за один поиск</h4>'+(ncost!=null?`<div class="kr"><span>Ур. ${slvl+1}: ${KT[slvl+1]} канд.</span><button data-k="buy"${gold>=ncost?'':' disabled'}>${fmt(ncost)}</button></div>`:'<div class="sub">Максимальный уровень</div>');
+h+='<h4>Автопродажа</h4><div class="sub">Отмеченные ступени продаются сразу при поиске (кроме самой высшей).</div>'+TIERS.slice(0,15).map((t,i)=>`<label class="kr"><span style="color:${t[2]}">${t[1]} · ${SELL[i]}</span><input type="checkbox" data-a="${i}"${(asl>>i)&1?' checked':''}></label>`).join('');
+h+='<h4>Все уровни</h4>'+KT.map((k,i)=>`<div class="kr"><span>Ур. ${i}${i===slvl?' · сейчас':''}</span><span>${k} канд.${i?' · '+fmt(SC[i-1]):''}</span></div>`).join('');
+$('ures').textContent='Сумеречное золото: '+fmt(gold);$('ubody').innerHTML=h}
+$('upg').onclick=()=>{uRender();$('udlg').showModal()};$('ucl').onclick=()=>$('udlg').close();
+$('ubody').onclick=async e=>{const b=e.target.closest('button');if(!b||b.disabled||b.dataset.k!=='buy')return;b.disabled=true;const r=await api('buy',{what:'search'}).catch(()=>({}));if(r.ok){apply(r);upd();uRender()}else $('ures').textContent=r.error==='gold'?'Не хватает золота.':'Не удалось.'};
+$('ubody').onchange=async e=>{const c=e.target.closest('input[data-a]');if(!c)return;const i=+c.dataset.a,m=c.checked?asl|(1<<i):asl&~(1<<i),r=await api('autosell',{mask:m}).catch(()=>({}));if(r.ok){apply(r);uRender()}};
 $('ltb').onclick=e=>{const b=e.target.closest('.lk');if(b)showOther(b.dataset.n)};
 async function showOther(n){$('ot').textContent='Коллекция: '+n;$('os').textContent='Загрузка…';$('og').innerHTML='';if(!$('odlg').open)$('odlg').showModal();const r=await api('view',{nickname:n}).catch(()=>({}));if(!r.collection){$('os').textContent='Не удалось загрузить.';return}
 const L=r.collection.map(x=>{const s=Number(x.seed),ix=pick(s);return[s,ix,total(ix,s)]}).sort((a,b)=>b[2]-a[2]);
@@ -232,7 +297,7 @@ $('lb').onclick=async()=>{const r=await api('board').catch(()=>({})),b=r.board||
 $('vcl').onclick=()=>$('vdlg').close();
 $('vin').onkeydown=e=>{if(e.key==='Enter')$('vgo').click()};
 $('vgo').onclick=()=>{const v=$('vin').value.trim().replace(/^№\s*/,'');if(!/^[0-9a-fA-F]{1,8}$/.test(v)){$('vmsg').textContent='Введи ID: до 8 символов 0-9 и A-F.';$('vres').innerHTML='';return}const s=parseInt(v,16),ix=pick(s),p=total(ix,s),t=tierOf(p);$('vmsg').textContent='Гриб можно только посмотреть, в коллекцию он не добавляется.';$('vres').innerHTML=`<svg viewBox="0 0 300 320" style="width:100%;max-height:42vh;display:block;margin-top:10px">${dw(ix,s,'v')}</svg><div class="row"><b>${idf(s)}</b><b style="color:${t[2]}">${t[1]}</b></div><div class="sub">Очки редкости: ${p}</div><table style="margin-top:8px">${rowsHtml(ix,s)}</table>`};
-$('grid').onclick=e=>{const d=e.target.closest('.del');if(d){const s=+d.dataset.d;if(confirm('Удалить гриб '+idf(s)+' из коллекции?')){api('remove',{seed:s}).then(r=>{if(r.ok){mc=mc.filter(x=>x!==s);showCol();addSt();upd()}})}return}const b=e.target.closest('.op');if(b){$('cdlg').close();render(+b.dataset.s)}};
+$('grid').onclick=e=>{const sl=e.target.closest('.sell');if(sl){api('sell',{seed:+sl.dataset.d}).then(r=>{if(r.ok){apply(r);showCol();addSt();upd()}});return}const d=e.target.closest('.del');if(d){const s=+d.dataset.d;if(confirm('Удалить гриб '+idf(s)+' без оплаты?')){api('remove',{seed:s}).then(r=>{if(r.ok){apply(r);showCol();addSt();upd()}})}return}const b=e.target.closest('.op');if(b){$('cdlg').close();render(+b.dataset.s)}};
 $('dlg').onclick=e=>{if(e.target===$('dlg'))$('dlg').close()};
 boot();
 </script></body></html>
