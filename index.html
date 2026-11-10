@@ -32,7 +32,8 @@ summary{cursor:pointer;color:var(--mute);margin-top:10px;font-size:14px}
 .del{width:100%;margin-top:6px;padding:6px;font-size:12px;background:#3a1d3f;color:var(--ink)}
 .three{gap:8px}.three button{padding:12px 4px;font-size:14px}
 #ttb td{color:var(--ink)}#ttb td:nth-child(2),#ttb td:nth-child(3){text-align:right;font-weight:400}#ttb td:nth-child(3){color:var(--mute);font-size:12px}
-#grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
+#grid,#og{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
+.lk{background:none;color:var(--ink);padding:0;font:inherit;text-decoration:underline;cursor:pointer}
 .it{background:#0e1130;border:2px solid var(--c);border-radius:12px;padding:6px;text-align:center;font-size:13px}
 .it svg{width:100%;height:auto;display:block}
 .it b{color:var(--c)}
@@ -53,6 +54,7 @@ summary{cursor:pointer;color:var(--mute);margin-top:10px;font-size:14px}
 <dialog id="tdlg"><div class="row"><b>Таблица элементов</b><button id="tcl">Закрыть</button></div><div class="sub">Вариант, очки редкости и шанс выпадения внутри своего элемента.</div><table id="ttb"></table></dialog>
 <dialog id="ndlg"><b>Выбери ник</b><div class="sub">Он будет виден в мировом рейтинге.</div><div class="open"><input id="nin" maxlength="16" placeholder="Ник" autocomplete="off"><button id="ngo">Играть</button></div><div class="sub" id="nmsg"></div></dialog>
 <dialog id="ldlg"><div class="row"><b>Мировой рейтинг</b><button id="lcl">Закрыть</button></div><div class="sub" id="lme"></div><table id="ltb"></table></dialog>
+<dialog id="odlg"><div class="row"><b id="ot"></b><button id="ocl">Закрыть</button></div><div class="sub" id="os"></div><div id="og"></div></dialog>
 <script>
 const $=s=>document.getElementById(s);
 const m32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
@@ -174,7 +176,7 @@ return d.replaceAll('#cdbd9b',hh(C[2],0,-12)).replaceAll('#f2e8d0',hh(C[2],0,14)
 let seed=0,found=0,mc=[],byPts=true;
 
 const save=()=>{try{localStorage.setItem('mc2',JSON.stringify(mc))}catch(e){}};
-const LIM=100;
+const LIM=50;
 const rating=()=>mc.reduce((a,s)=>a+total(pick(s),s),0);
 const upd=()=>{$('cnt').textContent=(nick?nick+' · ':'')+'Найдено: '+found+' · Коллекция: '+mc.length+'/'+LIM+' · Рейтинг: '+rating()};
 const addSt=()=>{const has=mc.includes(seed),full=mc.length>=LIM;$('add').disabled=has||full||seed!==curSeed;$('add').textContent=has?'В коллекции ✓':full?'Коллекция полна':'В коллекцию'};
@@ -218,7 +220,15 @@ async function api(action,x){const s=await session(),r=await fetch(SB+'/function
 function askNick(){return new Promise(res=>{const d=$('ndlg');d.oncancel=e=>e.preventDefault();$('ngo').onclick=async()=>{const r=await api('nick',{nickname:$('nin').value});if(r.ok){nick=r.nickname;d.close();res()}else $('nmsg').textContent=r.error==='taken'?'Этот ник занят.':r.error==='bad_nick'?'Ник: 3-16 символов, буквы, цифры, пробел, _ и -.':'Ошибка, попробуй ещё раз.'};d.showModal()})}
 async function boot(){try{const st=await api('state');if(st.error)throw 0;nick=st.nickname;curSeed=st.current==null?null:Number(st.current);mc=st.collection.map(x=>Number(x.seed)).reverse();if(!nick)await askNick();if(curSeed!=null)render(curSeed);else{$('pts').textContent='Нажми «Найти гриб»';addSt();upd()}}catch(e){$('pts').textContent='Нет связи с сервером. Обнови страницу.'}}
 $('lcl').onclick=()=>$('ldlg').close();
-$('lb').onclick=async()=>{const r=await api('board').catch(()=>({})),b=r.board||[];$('lme').textContent='Твой рейтинг: '+rating()+' · грибов: '+mc.length;$('ltb').innerHTML=b.length?b.map((x,i)=>`<tr${x.nickname===nick?' style="font-weight:700"':''}><td>${i+1}</td><td>${esc(x.nickname)}</td><td>${x.rating}</td><td>${x.mushrooms}</td></tr>`).join(''):'<tr><td>Пока никого нет.</td></tr>';$('ldlg').showModal()};
+$('ocl').onclick=()=>$('odlg').close();
+$('ltb').onclick=e=>{const b=e.target.closest('.lk');if(b)showOther(b.dataset.n)};
+async function showOther(n){$('ot').textContent='Коллекция: '+n;$('os').textContent='Загрузка…';$('og').innerHTML='';if(!$('odlg').open)$('odlg').showModal();const r=await api('view',{nickname:n}).catch(()=>({}));if(!r.collection){$('os').textContent='Не удалось загрузить.';return}
+const L=r.collection.map(x=>{const s=Number(x.seed),ix=pick(s);return[s,ix,total(ix,s)]}).sort((a,b)=>b[2]-a[2]);
+$('os').textContent='Слотов занято: '+L.length+'/'+LIM+' · Рейтинг: '+L.reduce((a,x)=>a+x[2],0)+' · Лучший: '+(L.length?L[0][2]:0);
+const show=k=>L.slice(0,k).map(([s,ix,p],i)=>{const t=tierOf(p);return `<div class="it" style="--c:${t[2]}"><svg viewBox="0 0 300 320">${dw(ix,s,'o'+i)}</svg><b>${t[1]}</b><br>${idf(s)} · ${p}</div>`}).join('');
+$('og').innerHTML=show(12)+(L.length>12?'<button id="omore" style="grid-column:1/-1">Показать все ('+L.length+')</button>':'');
+const mb=$('omore');if(mb)mb.onclick=()=>{$('og').innerHTML=show(L.length)}}
+$('lb').onclick=async()=>{const r=await api('board').catch(()=>({})),b=r.board||[];$('lme').textContent='Твой рейтинг: '+rating()+' · грибов: '+mc.length;$('ltb').innerHTML=b.length?b.map((x,i)=>`<tr${x.nickname===nick?' style="font-weight:700"':''}><td>${i+1}</td><td><button class="lk" data-n="${esc(x.nickname)}">${esc(x.nickname)}</button></td><td>${x.rating}</td><td>${x.mushrooms}</td></tr>`).join(''):'<tr><td>Пока никого нет.</td></tr>';$('ldlg').showModal()};
 $('vcl').onclick=()=>$('vdlg').close();
 $('vin').onkeydown=e=>{if(e.key==='Enter')$('vgo').click()};
 $('vgo').onclick=()=>{const v=$('vin').value.trim().replace(/^№\s*/,'');if(!/^[0-9a-fA-F]{1,8}$/.test(v)){$('vmsg').textContent='Введи ID: до 8 символов 0-9 и A-F.';$('vres').innerHTML='';return}const s=parseInt(v,16),ix=pick(s),p=total(ix,s),t=tierOf(p);$('vmsg').textContent='Гриб можно только посмотреть, в коллекцию он не добавляется.';$('vres').innerHTML=`<svg viewBox="0 0 300 320" style="width:100%;max-height:42vh;display:block;margin-top:10px">${dw(ix,s,'v')}</svg><div class="row"><b>${idf(s)}</b><b style="color:${t[2]}">${t[1]}</b></div><div class="sub">Очки редкости: ${p}</div><table style="margin-top:8px">${rowsHtml(ix,s)}</table>`};
