@@ -230,7 +230,7 @@ return d.replaceAll('#cdbd9b',hh(C[2],0,-12)).replaceAll('#f2e8d0',hh(C[2],0,14)
 let seed=0,found=0,mc=[],byPts=true;
 
 const save=()=>{try{localStorage.setItem('mc2',JSON.stringify(mc))}catch(e){}};
-let LIM=50,gold=0,slvl=0,kk=1,asl=0,ncost=null;
+let LIM=100,gold=0,slvl=0,kk=1,asl=0,ncost=null;
 const SELL=[1,3,5,9,17,32,60,110,200,390,740,1300,2500,4600,8500,16000],KT=[1,2,3,5,8,13,21,34,55,89,144],SC=[440,1400,3600,10000,29000,81000,230000,630000,1800000,4900000],fmt=n=>Number(n).toLocaleString('ru'),sellP=p=>SELL[TIERS.indexOf(tierOf(p))];
 const resTxt=()=>{$('res').textContent='Сумеречное золото: '+fmt(gold)+' · Поиск: ур. '+slvl+' ('+kk+' канд.)'};
 function apply(r){if(r.limit)LIM=r.limit;if(r.gold!=null){gold=Number(r.gold);slvl=r.search_lvl;kk=r.k;asl=r.autosell;ncost=r.next_cost}if(r.collection)mc=r.collection.map(x=>Number(x.seed)).reverse();if('current' in r)curSeed=r.current==null?null:Number(r.current)}
