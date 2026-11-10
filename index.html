@@ -31,9 +31,6 @@ summary{cursor:pointer;color:var(--mute);margin-top:10px;font-size:14px}
 .op{background:none;color:var(--ink);padding:0;width:100%;font-size:13px}
 .del{width:100%;margin-top:6px;padding:6px;font-size:12px;background:#3a1d3f;color:var(--ink)}
 .three{gap:8px}.three button{padding:12px 4px;font-size:14px}
-.kr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}.kr button{padding:8px 10px;font-size:13px}
-h4{margin:14px 0 4px;font-size:14px;color:var(--mute)}
-.sell{width:100%;margin-top:6px;padding:6px;font-size:12px;background:#4b3b12;color:var(--ink)}
 #ttb td{color:var(--ink)}#ttb td:nth-child(2),#ttb td:nth-child(3){text-align:right;font-weight:400}#ttb td:nth-child(3){color:var(--mute);font-size:12px}
 #grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-top:12px}
 .it{background:#0e1130;border:2px solid var(--c);border-radius:12px;padding:6px;text-align:center;font-size:13px}
@@ -46,7 +43,7 @@ h4{margin:14px 0 4px;font-size:14px;color:var(--mute)}
 <div class="card" id="card">
 <div class="row"><span id="id"></span><span id="tier"></span></div>
 <div class="sub" id="pts"></div>
-<div class="sub" id="res"></div><div class="btns"><button id="go">Найти гриб</button></div><div class="btns three" style="margin-top:8px"><button id="add">В коллекцию</button><button id="sellc">Продать</button></div><div class="btns three" style="margin-top:8px"><button id="info">Состав</button><button id="cbtn">Коллекция</button><button id="pkb">Грибники</button></div><details id="more"><summary>Ещё</summary><div class="btns three"><button id="vid">Поиск по ID</button><button id="tbl">Таблица</button><button id="lb">Рейтинг</button></div></details>
+<div class="btns"><button id="go">Найти гриб</button></div><div class="btns three" style="margin-top:8px"><button id="add">В коллекцию</button><button id="info">Состав</button><button id="cbtn">Коллекция</button></div><details id="more"><summary>Ещё</summary><div class="btns three"><button id="vid">Поиск по ID</button><button id="tbl">Таблица</button><button id="lb">Рейтинг</button></div></details>
 
 <div class="sub" id="cnt" style="margin-top:8px"></div>
 </div></main>
@@ -56,7 +53,6 @@ h4{margin:14px 0 4px;font-size:14px;color:var(--mute)}
 <dialog id="tdlg"><div class="row"><b>Таблица элементов</b><button id="tcl">Закрыть</button></div><div class="sub">Вариант, очки редкости и шанс выпадения внутри своего элемента.</div><table id="ttb"></table></dialog>
 <dialog id="ndlg"><b>Выбери ник</b><div class="sub">Он будет виден в мировом рейтинге.</div><div class="open"><input id="nin" maxlength="16" placeholder="Ник" autocomplete="off"><button id="ngo">Играть</button></div><div class="sub" id="nmsg"></div></dialog>
 <dialog id="ldlg"><div class="row"><b>Мировой рейтинг</b><button id="lcl">Закрыть</button></div><div class="sub" id="lme"></div><table id="ltb"></table></dialog>
-<dialog id="kdlg"><div class="row"><b>Грибники</b><button id="kcl">Закрыть</button></div><div class="sub" id="kres"></div><div id="kbody"></div></dialog>
 <script>
 const $=s=>document.getElementById(s);
 const m32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
@@ -178,14 +174,9 @@ return d.replaceAll('#cdbd9b',hh(C[2],0,-12)).replaceAll('#f2e8d0',hh(C[2],0,14)
 let seed=0,found=0,mc=[],byPts=true;
 
 const save=()=>{try{localStorage.setItem('mc2',JSON.stringify(mc))}catch(e){}};
-let LIM=50,gold=0,E0=20,T0=Date.now(),ecap=20,bk=[],pk=[],bcap=20,costs={};
-const SELL=[1,3,10,30,100,400,2000,10000],fmt=n=>Number(n).toLocaleString('ru'),sellP=p=>SELL[TIERS.indexOf(tierOf(p))];
-const en=()=>Math.min(ecap,E0+(Date.now()-T0)/180000);
-const resTxt=()=>{$('res').textContent='Сумеречное золото: '+fmt(gold)+' · Энергия: '+Math.floor(en())+'/'+ecap};
-function apply(r){if(r.limit)LIM=r.limit;if(r.gold!=null){gold=Number(r.gold);E0=r.energy;T0=Date.now();ecap=r.energy_cap;pk=r.pickers;bk=r.basket;bcap=r.basket_cap;costs=r.costs}if(r.collection)mc=r.collection.map(x=>Number(x.seed)).reverse();if('current' in r)curSeed=r.current==null?null:Number(r.current)}
-setInterval(resTxt,1000);
+const LIM=50;
 const rating=()=>mc.reduce((a,s)=>a+total(pick(s),s),0);
-const upd=()=>{$('cnt').textContent=(nick?nick+' · ':'')+'Найдено: '+found+' · Коллекция: '+mc.length+'/'+LIM+' · Рейтинг: '+rating();resTxt();const ok=window.cur&&curSeed!=null&&seed===curSeed&&!mc.includes(seed);$('sellc').disabled=!ok;$('sellc').textContent=ok?'Продать за '+sellP(total(window.cur,seed)):'Продать'};
+const upd=()=>{$('cnt').textContent=(nick?nick+' · ':'')+'Найдено: '+found+' · Коллекция: '+mc.length+'/'+LIM+' · Рейтинг: '+rating()};
 const addSt=()=>{const has=mc.includes(seed),full=mc.length>=LIM;$('add').disabled=has||full||seed!==curSeed;$('add').textContent=has?'В коллекции ✓':full?'Коллекция полна':'В коллекцию'};
 const dw=(ix,s,p)=>draw(ix,s).replace(/id="(\w+)"/g,`id="$1${p}"`).replace(/url\(#(\w+)\)/g,`url(#$1${p})`).replace(/href="#(\w+)"/g,`href="#$1${p}"`);
 function render(s){seed=s;const ix=pick(s),p=total(ix,s),t=tierOf(p);window.cur=ix;
@@ -194,19 +185,18 @@ for(const e of[$('stage'),$('badge')]){e.classList.remove('pop');void e.getBound
 $('id').textContent=idf(s);$('tier').textContent=t[1];$('pts').textContent='Очки редкости: '+p;
 document.documentElement.style.setProperty('--tc',t[2]);document.body.style.setProperty('--tc',t[2]);
 $('badge').textContent=t[1];addSt();upd()}
-$('go').onclick=async()=>{const b=$('go');b.disabled=true;try{const r=await api('find');if(r.seed!=null){apply(r);found++;render(curSeed)}else if(r.error==='energy'){apply(r);upd();$('pts').textContent='Нет энергии. Подожди или улучши запас.'}else if(r.error!=='slow')$('pts').textContent='Ошибка связи, попробуй ещё раз.'}catch(e){$('pts').textContent='Нет связи с сервером.'}b.disabled=false};
+$('go').onclick=async()=>{const b=$('go');b.disabled=true;try{const r=await api('find');if(r.seed!=null){curSeed=Number(r.seed);found++;render(curSeed)}else if(r.error!=='slow')$('pts').textContent='Ошибка связи, попробуй ещё раз.'}catch(e){$('pts').textContent='Нет связи с сервером.'}b.disabled=false};
 
 $('info').onclick=()=>{const ix=cur,p=total(ix,seed),t=tierOf(p);$('dt').textContent=idf(seed)+' · '+t[1];
 $('tb').innerHTML=SLOTS.map(([n,v],k)=>{const w=W(v),pc=w[ix[k]]/w.reduce((a,b)=>a+b)*100;return `<tr><td>${n}</td><td>${v[ix[k]][0]}</td><td>+${v[ix[k]][1]}</td><td>${pc<1?pc.toFixed(2):pc.toFixed(1)}%</td></tr>`}).join('')+colRows(ix,seed)+`<tr><td colspan="2"><b>Итого</b></td><td><b>${p}</b></td><td></td></tr>`;
 $('dlg').showModal()};
 $('cls').onclick=()=>$('dlg').close();
-$('add').onclick=async()=>{$('add').disabled=true;const r=await api('claim').catch(()=>({}));if(r.ok){apply(r);addSt();upd()}else{$('add').textContent=r.error==='full'?'Коллекция полна':'Не удалось'}};
-$('sellc').onclick=async()=>{$('sellc').disabled=true;const r=await api('sell_current').catch(()=>({}));if(r.ok){apply(r);addSt();upd()}};
+$('add').onclick=async()=>{$('add').disabled=true;const r=await api('claim').catch(()=>({}));if(r.ok){mc.push(seed);addSt();upd()}else{$('add').textContent=r.error==='full'?'Коллекция полна':'Не удалось'}};
 function showCol(){const L=mc.map(s=>{const ix=pick(s);return [s,ix,total(ix,s)]});if(byPts)L.sort((a,b)=>b[2]-a[2]);else L.reverse();
 $('ct').textContent='Коллекция';
 $('cs').textContent=L.length?`Слоты: ${L.length}/${LIM} · Рейтинг: ${L.reduce((a,x)=>a+x[2],0)} · Лучший: ${Math.max(...L.map(x=>x[2]))}`:'Пока пусто. Нажми «В коллекцию» под понравившимся грибом.';
 $('srt').textContent='Сортировка: '+(byPts?'по очкам':'по новизне');
-$('grid').innerHTML=L.map(([s,ix,p],i)=>{const t=tierOf(p);return `<div class="it" style="--c:${t[2]}"><button class="op" data-s="${s}"><svg viewBox="0 0 300 320">${dw(ix,s,'t'+i)}</svg><b>${t[1]}</b><br>${idf(s)} · ${p}</button><button class="sell" data-d="${s}">Продать за ${sellP(p)}</button><button class="del" data-d="${s}">Удалить</button></div>`}).join('');
+$('grid').innerHTML=L.map(([s,ix,p],i)=>{const t=tierOf(p);return `<div class="it" style="--c:${t[2]}"><button class="op" data-s="${s}"><svg viewBox="0 0 300 320">${dw(ix,s,'t'+i)}</svg><b>${t[1]}</b><br>${idf(s)} · ${p}</button><button class="del" data-d="${s}">Удалить</button></div>`}).join('');
 if(!$('cdlg').open)$('cdlg').showModal()}
 $('cbtn').onclick=showCol;$('ccl').onclick=()=>$('cdlg').close();
 $('srt').onclick=()=>{byPts=!byPts;showCol()};
@@ -226,20 +216,13 @@ async function au(p,b){const r=await fetch(SB+'/auth/v1/'+p,{method:'POST',heade
 async function session(){sess=sess||ls('sb');if(sess&&sess.expires_at>Date.now()/1000+60)return sess;if(sess&&sess.refresh_token){try{sess=await au('token?grant_type=refresh_token',{refresh_token:sess.refresh_token});ls('sb',sess);return sess}catch(e){if(!(e.status>=400&&e.status<500))throw e}}sess=await au('signup',{data:{},gotrue_meta_security:{}});ls('sb',sess);return sess}
 async function api(action,x){const s=await session(),r=await fetch(SB+'/functions/v1/game',{method:'POST',headers:{apikey:PK,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json'},body:JSON.stringify({action,...x})});return r.json().catch(()=>({error:'server'}))}
 function askNick(){return new Promise(res=>{const d=$('ndlg');d.oncancel=e=>e.preventDefault();$('ngo').onclick=async()=>{const r=await api('nick',{nickname:$('nin').value});if(r.ok){nick=r.nickname;d.close();res()}else $('nmsg').textContent=r.error==='taken'?'Этот ник занят.':r.error==='bad_nick'?'Ник: 3-16 символов, буквы, цифры, пробел, _ и -.':'Ошибка, попробуй ещё раз.'};d.showModal()})}
-async function boot(){try{const st=await api('state');if(st.error)throw 0;nick=st.nickname;apply(st);if(!nick)await askNick();if(curSeed!=null)render(curSeed);else{$('pts').textContent='Нажми «Найти гриб»';addSt();upd()}}catch(e){$('pts').textContent='Нет связи с сервером. Обнови страницу.'}}
+async function boot(){try{const st=await api('state');if(st.error)throw 0;nick=st.nickname;curSeed=st.current==null?null:Number(st.current);mc=st.collection.map(x=>Number(x.seed)).reverse();if(!nick)await askNick();if(curSeed!=null)render(curSeed);else{$('pts').textContent='Нажми «Найти гриб»';addSt();upd()}}catch(e){$('pts').textContent='Нет связи с сервером. Обнови страницу.'}}
 $('lcl').onclick=()=>$('ldlg').close();
-function kRender(){const c=costs;let h='<h4>Корзина ('+bk.length+'/'+bcap+')</h4>'+(bk.length?bk.map(x=>{const t=tierOf(x.points);return `<div class="kr"><span style="color:${t[2]}">${t[1]}</span><span>${idf(Number(x.seed))} · ${x.points}</span><span><button data-k="take" data-i="${x.id}">Забрать</button> <button data-k="bsell" data-i="${x.id}">${sellP(x.points)}</button></span></div>`}).join(''):'<div class="sub">Пусто</div>');
-h+='<h4>Грибники ('+pk.length+'/5)</h4>'+pk.map((p,i)=>{const u=c.up&&c.up[p.id];return `<div class="kr"><span>№${i+1} · ур. ${p.level} · ${1+Math.floor(p.level/2)} гр. / 30 мин</span><button data-k="up" data-i="${p.id}"${u!=null?'':' disabled'}>${u!=null?'Улучшить '+fmt(u):'Макс.'}</button></div>`}).join('');
-h+=`<div class="kr"><span>Нанять грибника</span><button data-k="picker"${c.picker!=null?'':' disabled'}>${c.picker!=null?fmt(c.picker):'Макс.'}</button></div><h4>Улучшения</h4>`+[['basket','Корзина +10',c.basket],['slots','Слоты коллекции +10',c.slots],['energy','Запас энергии +5',c.energy]].map(([k,n,v])=>`<div class="kr"><span>${n}</span><button data-k="${k}"${v!=null?'':' disabled'}>${v!=null?fmt(v):'Макс.'}</button></div>`).join('');
-$('kres').textContent='Сумеречное золото: '+fmt(gold);$('kbody').innerHTML=h}
-$('pkb').onclick=()=>{kRender();$('kdlg').showModal()};$('kcl').onclick=()=>$('kdlg').close();
-$('kbody').onclick=async e=>{const b=e.target.closest('button');if(!b||b.disabled)return;b.disabled=true;const k=b.dataset.k,i=Number(b.dataset.i);const body=k==='take'?{action:'basket_take',id:i}:k==='bsell'?{action:'basket_sell',id:i}:k==='up'?{action:'buy',what:'picker_up',id:i}:{action:'buy',what:k};
-const r=await api(body.action,body).catch(()=>({}));if(r.ok){apply(r);addSt();upd();kRender()}else $('kres').textContent=r.error==='gold'?'Не хватает золота.':r.error==='full'?'Коллекция полна.':r.error==='have'?'Такой гриб уже в коллекции, продай его.':'Не удалось.'};
 $('lb').onclick=async()=>{const r=await api('board').catch(()=>({})),b=r.board||[];$('lme').textContent='Твой рейтинг: '+rating()+' · грибов: '+mc.length;$('ltb').innerHTML=b.length?b.map((x,i)=>`<tr${x.nickname===nick?' style="font-weight:700"':''}><td>${i+1}</td><td>${esc(x.nickname)}</td><td>${x.rating}</td><td>${x.mushrooms}</td></tr>`).join(''):'<tr><td>Пока никого нет.</td></tr>';$('ldlg').showModal()};
 $('vcl').onclick=()=>$('vdlg').close();
 $('vin').onkeydown=e=>{if(e.key==='Enter')$('vgo').click()};
 $('vgo').onclick=()=>{const v=$('vin').value.trim().replace(/^№\s*/,'');if(!/^[0-9a-fA-F]{1,8}$/.test(v)){$('vmsg').textContent='Введи ID: до 8 символов 0-9 и A-F.';$('vres').innerHTML='';return}const s=parseInt(v,16),ix=pick(s),p=total(ix,s),t=tierOf(p);$('vmsg').textContent='Гриб можно только посмотреть, в коллекцию он не добавляется.';$('vres').innerHTML=`<svg viewBox="0 0 300 320" style="width:100%;max-height:42vh;display:block;margin-top:10px">${dw(ix,s,'v')}</svg><div class="row"><b>${idf(s)}</b><b style="color:${t[2]}">${t[1]}</b></div><div class="sub">Очки редкости: ${p}</div><table style="margin-top:8px">${rowsHtml(ix,s)}</table>`};
-$('grid').onclick=e=>{const sl=e.target.closest('.sell');if(sl){api('sell',{seed:+sl.dataset.d}).then(r=>{if(r.ok){apply(r);showCol();addSt();upd()}});return}const d=e.target.closest('.del');if(d){const s=+d.dataset.d;if(confirm('Удалить гриб '+idf(s)+' без оплаты?')){api('remove',{seed:s}).then(r=>{if(r.ok){apply(r);showCol();addSt();upd()}})}return}const b=e.target.closest('.op');if(b){$('cdlg').close();render(+b.dataset.s)}};
+$('grid').onclick=e=>{const d=e.target.closest('.del');if(d){const s=+d.dataset.d;if(confirm('Удалить гриб '+idf(s)+' из коллекции?')){api('remove',{seed:s}).then(r=>{if(r.ok){mc=mc.filter(x=>x!==s);showCol();addSt();upd()}})}return}const b=e.target.closest('.op');if(b){$('cdlg').close();render(+b.dataset.s)}};
 $('dlg').onclick=e=>{if(e.target===$('dlg'))$('dlg').close()};
 boot();
 </script></body></html>
