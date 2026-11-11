@@ -37,6 +37,7 @@ summary{cursor:pointer;color:var(--mute);margin-top:10px;font-size:14px}
 .kr{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--line);font-size:14px}.kr button{padding:8px 10px;font-size:13px}
 h4{margin:14px 0 4px;font-size:14px;color:var(--mute)}
 .sell{width:100%;margin-top:6px;padding:6px;font-size:12px;background:#4b3b12;color:var(--ink)}
+#abody input{display:block;width:100%;box-sizing:border-box;margin:6px 0}#abody button{width:100%;margin-bottom:4px}
 .it{background:#0e1130;border:2px solid var(--c);border-radius:12px;padding:6px;text-align:center;font-size:13px}
 .it svg{width:100%;height:auto;display:block}
 .it b{color:var(--c)}
@@ -47,7 +48,7 @@ h4{margin:14px 0 4px;font-size:14px;color:var(--mute)}
 <div class="card" id="card">
 <div class="row"><span id="id"></span><span id="tier"></span></div>
 <div class="sub" id="pts"></div>
-<div class="sub" id="res"></div><div class="btns"><button id="go">Найти гриб</button></div><div class="btns three" style="margin-top:8px"><button id="add">В коллекцию</button><button id="sellc">Продать</button></div><div class="btns three" style="margin-top:8px"><button id="info">Состав</button><button id="cbtn">Коллекция</button><button id="upg">Прокачка</button></div><details id="more"><summary>Ещё</summary><div class="btns three"><button id="vid">Поиск по ID</button><button id="tbl">Таблица</button><button id="lb">Рейтинг</button></div></details>
+<div class="sub" id="res"></div><div class="btns"><button id="go">Найти гриб</button></div><div class="btns three" style="margin-top:8px"><button id="add">В коллекцию</button><button id="sellc">Продать</button></div><div class="btns three" style="margin-top:8px"><button id="info">Состав</button><button id="cbtn">Коллекция</button><button id="upg">Прокачка</button></div><details id="more"><summary>Ещё</summary><div class="btns three"><button id="vid">Поиск по ID</button><button id="tbl">Таблица</button><button id="lb">Рейтинг</button></div><div class="btns three" style="margin-top:8px"><button id="acc">Аккаунт</button></div></details>
 
 <div class="sub" id="cnt" style="margin-top:8px"></div>
 </div></main>
@@ -55,10 +56,11 @@ h4{margin:14px 0 4px;font-size:14px;color:var(--mute)}
 <dialog id="cdlg"><div class="row"><b id="ct"></b><button id="ccl">Закрыть</button></div><div class="sub" id="cs"></div><button id="srt" style="margin-top:8px"></button><div id="grid"></div></dialog>
 <dialog id="vdlg"><div class="row"><b>Поиск по ID</b><button id="vcl">Закрыть</button></div><div class="open"><input id="vin" placeholder="ID: до 8 символов 0-9, A-F" maxlength="10" autocomplete="off"><button id="vgo">Открыть</button></div><div class="sub" id="vmsg">Гриб можно только посмотреть, в коллекцию он не добавляется.</div><div id="vres"></div></dialog>
 <dialog id="tdlg"><div class="row"><b>Таблица элементов</b><button id="tcl">Закрыть</button></div><div class="sub">Вариант, очки редкости и шанс выпадения внутри своего элемента.</div><table id="ttb"></table></dialog>
-<dialog id="ndlg"><b>Выбери ник</b><div class="sub">Он будет виден в мировом рейтинге.</div><div class="open"><input id="nin" maxlength="16" placeholder="Ник" autocomplete="off"><button id="ngo">Играть</button></div><div class="sub" id="nmsg"></div></dialog>
+<dialog id="ndlg"><b>Выбери ник</b><div class="sub">Он будет виден в мировом рейтинге.</div><div class="open"><input id="nin" maxlength="16" placeholder="Ник" autocomplete="off"><button id="ngo">Играть</button></div><div class="sub" id="nmsg"></div><button id="nacc" style="margin-top:10px;width:100%">У меня есть аккаунт</button></dialog>
 <dialog id="ldlg"><div class="row"><b>Мировой рейтинг</b><button id="lcl">Закрыть</button></div><div class="sub" id="lme"></div><table id="ltb"></table></dialog>
 <dialog id="odlg"><div class="row"><b id="ot"></b><button id="ocl">Закрыть</button></div><div class="sub" id="os"></div><div id="og"></div></dialog>
 <dialog id="udlg"><div class="row"><b>Прокачка поиска</b><button id="ucl">Закрыть</button></div><div class="sub" id="ures"></div><div id="ubody"></div></dialog>
+<dialog id="adlg"><div class="row"><b>Аккаунт</b><button id="acl">Закрыть</button></div><div class="sub" id="amsg"></div><div id="abody"></div></dialog>
 <script>
 const $=s=>document.getElementById(s);
 const m32=a=>()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296};
@@ -113,7 +115,7 @@ const CAPS=[[dome(85,70,cy),85,cy-70],[dome(100,36,cy),100,cy-36],[`M80,${cy}Q12
 const PAL=[['#6b4228','#8f5d3a','#b7835a'],['#bdb4a2','#e6dfd0','#fbf7ee'],['#7a1620','#c2303a','#ee6a5f'],['#b88a14','#efbe2a','#ffe27a'],['#1d3f8f','#3a74d8','#8fb9ff'],['#4b2288','#8450cf','#c39bff'],['#9fb4c8','#d9c8e8','#effff8'],['#d63a8e','#ff8a3d','#ffd25e']];
 const CN=['шляпка','узор','ножка','юбочка','пластинки','свечение','частицы'],SAT=[25,45,65,85],LIG=[30,42,54,66];
 function colors(seed){const r=m32(seed^0x7f4a7c15);return CN.map((n,k)=>{const h=Math.floor(r()*360),si=Math.floor(r()*4),li=Math.floor(r()*4);return{h,s:SAT[si],l:LIG[li]}})}
-const hh=(c,d,dl=0,ds=0)=>`hsl(${(c.h+d+360)%360} ${Math.min(100,c.s+ds)}% ${Math.max(5,Math.min(95,c.l+dl))}%)`;
+const hh=(c,d,dl=0,ds=0)=>`hsl(${(c.h+d+360)%360},${Math.min(100,c.s+ds)}%,${Math.max(5,Math.min(95,c.l+dl))}%)`;
 const hex=c=>{const l=c.l/100,a=c.s/100*Math.min(l,1-l),f=n=>{const k=(n+c.h/30)%12;return Math.round(255*(l-a*Math.max(-1,Math.min(k-3,9-k,1)))).toString(16).padStart(2,'0')};return('#'+f(0)+f(8)+f(4)).toUpperCase()};
 const colRows0=(ix,s)=>{const a=act(ix),h=harm(ix,s);return colors(s).map((c,k)=>a[k]?`<tr><td>Цвет: ${CN[k]}</td><td><span style="display:inline-block;width:12px;height:12px;border-radius:3px;background:${hh(c,0)};vertical-align:-1px"></span> ${hex(c)}</td><td></td><td></td></tr>`:'').join('')+(h?`<tr><td>Гармония</td><td>${HN[h.i]}</td><td>+${h.p}</td><td>${(HPR[h.n][h.i]*100).toFixed(2)}%</td></tr>`:'')};
 const themeRows=(ix,s)=>{const t=themeTier(ix,s),r=raw(ix,s);if(t>=0)return `<tr><td>Тема</td><td>${TV[t].n} ×${themes(s,ix).filter(x=>x===t).length}</td><td>=${TIERS[8+t][0]}</td><td></td></tr>`;return r>TIERS[8][0]-1?`<tr><td>Предел без темы</td><td></td><td>${TIERS[8][0]-1}</td><td></td></tr>`:''};
@@ -145,7 +147,7 @@ case 'rings':for(let i=0;i<5;i++)s+=`<circle cx="${rn(90,210)}" cy="${rn(cy-70,c
 case 'rays':for(let i=-6;i<7;i++)s+=`<path d="M150,${cy-90}L${150+i*26},${cy+5}" stroke="${c[2]}" stroke-width="3" opacity=".35"/>`;break;
 case 'const':{let p='';for(let i=0;i<7;i++)p+=(i?'L':'M')+X()+','+Y();s+=`<path d="${p}" fill="none" stroke="${c[1]}" stroke-width="1.2" opacity=".8"/>`;for(let i=0;i<8;i++)s+=`<circle cx="${X()}" cy="${Y()}" r="2.2" fill="${c[2]}"/>`}break;
 case 'nebula':for(let i=0;i<4;i++)s+=`<circle cx="${rn(80,220)}" cy="${rn(cy-80,cy-10)}" r="${rn(25,45)}" fill="${c[i%2]}" opacity=".35" filter="url(#bl)"/>`;for(let i=0;i<25;i++)s+=`<circle cx="${X()}" cy="${Y()}" r="${rn(.6,1.6)}" fill="#fff"/>`;break;
-default:for(let i=0;i<6;i++)s+=`<path d="M${40+i*45},${cy-110}L${i*45-10},${cy+5}" stroke="hsl(${i*60} 90% 65%)" stroke-width="14" opacity=".35"/>`}
+default:for(let i=0;i<6;i++)s+=`<path d="M${40+i*45},${cy-110}L${i*45-10},${cy+5}" stroke="hsl(${i*60},90%,65%)" stroke-width="14" opacity=".35"/>`}
 return s}
 const tRing=(t,rx,y)=>{const c=TV[t].c;let s=`<ellipse cx="150" cy="${y}" rx="${rx+6}" ry="8" fill="none" stroke="${c[0]}" stroke-width="4"/><ellipse cx="150" cy="${y}" rx="${rx+6}" ry="8" fill="none" stroke="${c[1]}" stroke-width="1.5" stroke-dasharray="3 5"/>`;for(let i=0;i<6;i++){const a=i/6*Math.PI*2;s+=GP(t,150+Math.cos(a)*(rx+6),y+Math.sin(a)*8,4)}return s};
 const tGlow=(t,y)=>{const c=TV[t].c;return `<circle cx="150" cy="${y}" r="120" fill="${t==7?'url(#rb)':c[0]}" opacity=".35" filter="url(#bl)"/><circle cx="150" cy="${y}" r="70" fill="${c[1]}" opacity=".22" filter="url(#bl)"/>`};
@@ -156,10 +158,10 @@ case 0:s+=`<circle cx="150" cy="150" r="125" fill="none" stroke="${c[0]}" stroke
 case 1:for(let i=0;i<10;i++){const a=i/10*Math.PI*2;s+=GP(1,150+Math.cos(a)*120,150+Math.sin(a)*120,10,.55,a*57)}break;
 case 2:s+=`<polygon points="${[0,1,2,3,4,5].map(i=>hx(i).join(',')).join(' ')}" fill="none" stroke="${c[1]}" stroke-width="3" opacity=".45"/>`+[0,1,2,3,4,5].map(i=>`<circle cx="${hx(i)[0]}" cy="${hx(i)[1]}" r="6" fill="${c[0]}"/>`).join('');break;
 case 3:for(let i=0;i<7;i++){const a=i/6*Math.PI*2;s+=`<circle cx="${150+(i?55*Math.cos(a):0)}" cy="${150+(i?55*Math.sin(a):0)}" r="55" fill="none" stroke="${c[1]}" stroke-width="1.5" opacity=".5"/>`}break;
-case 4:for(let i=0;i<16;i++){const a=i/16*Math.PI*2;s+=`<path d="M150,150L${150+Math.cos(a-.06)*190},${150+Math.sin(a-.06)*190}L${150+Math.cos(a+.06)*190},${150+Math.sin(a+.06)*190}Z" fill="${c[0]}" opacity=".18"/>`}break;
+case 4:for(let i=0;i<16;i++){const a=i/16*Math.PI*2;s+=`<path d="M150,150L${150+Math.cos(a-.06)*190},${150+Math.sin(a-.06)*190}L${150+Math.cos(a+.06)*190},${150+Math.sin(a+.06)*190}Z" fill="${c[0]}" opacity=".3"/>`}break;
 case 5:{let p='';for(let i=0;i<9;i++){const x=rn(20,280),y=rn(20,200);p+=(i?'L':'M')+x+','+y;s+=`<circle cx="${x}" cy="${y}" r="3" fill="${c[1]}"/>`}s+=`<path d="${p}" fill="none" stroke="${c[0]}" stroke-width="1.4" opacity=".6"/>`}break;
 case 6:for(let i=0;i<60;i++)s+=`<circle cx="${rn(0,300)}" cy="${rn(0,290)}" r="${rn(.6,1.8)}" fill="#fff" opacity="${rn(.4,1)}"/>`;s+=`<circle cx="90" cy="110" r="70" fill="${c[1]}" opacity=".25" filter="url(#bl)"/><circle cx="220" cy="140" r="80" fill="${c[0]}" opacity=".28" filter="url(#bl)"/>`;break;
-default:for(let i=0;i<5;i++)s+=`<circle cx="150" cy="150" r="${40+i*22}" fill="none" stroke="hsl(${i*70} 90% 65%)" stroke-width="4" stroke-dasharray="30 12" opacity=".45"><animateTransform attributeName="transform" type="rotate" from="0 150 150" to="${i%2?-360:360} 150 150" dur="${12+i*3}s" repeatCount="indefinite"/></circle>`}
+default:for(let i=0;i<5;i++)s+=`<circle cx="150" cy="150" r="${40+i*22}" fill="none" stroke="hsl(${i*70},90%,65%)" stroke-width="4" stroke-dasharray="30 12" opacity=".45"><animateTransform attributeName="transform" type="rotate" from="0 150 150" to="${i%2?-360:360} 150 150" dur="${12+i*3}s" repeatCount="indefinite"/></circle>`}
 return s}
 function draw(ix,seed){
 const g=m32(seed^0x5bd1e995),rn=(a,b)=>a+g()*(b-a);const th=themes(seed,ix),tt=themeTier(ix,seed);
@@ -230,12 +232,12 @@ return d.replaceAll('#cdbd9b',hh(C[2],0,-12)).replaceAll('#f2e8d0',hh(C[2],0,14)
 let seed=0,found=0,mc=[],byPts=true;
 
 const save=()=>{try{localStorage.setItem('mc2',JSON.stringify(mc))}catch(e){}};
-let LIM=100,gold=0,slvl=0,kk=1,asl=0,ncost=null;
+let LIM=50,gold=0,slvl=0,kk=1,asl=0,ncost=null,account=null,nickDone=null;
 const SELL=[1,3,5,9,17,32,60,110,200,390,740,1300,2500,4600,8500,16000],KT=[1,2,3,5,8,13,21,34,55,89,144],SC=[440,1400,3600,10000,29000,81000,230000,630000,1800000,4900000],fmt=n=>Number(n).toLocaleString('ru'),sellP=p=>SELL[TIERS.indexOf(tierOf(p))];
 const resTxt=()=>{$('res').textContent='Сумеречное золото: '+fmt(gold)+' · Поиск: ур. '+slvl+' ('+kk+' канд.)'};
-function apply(r){if(r.limit)LIM=r.limit;if(r.gold!=null){gold=Number(r.gold);slvl=r.search_lvl;kk=r.k;asl=r.autosell;ncost=r.next_cost}if(r.collection)mc=r.collection.map(x=>Number(x.seed)).reverse();if('current' in r)curSeed=r.current==null?null:Number(r.current)}
+function apply(r){if('account' in r)account=r.account;if(r.limit)LIM=r.limit;if(r.gold!=null){gold=Number(r.gold);slvl=r.search_lvl;kk=r.k;asl=r.autosell;ncost=r.next_cost}if(r.collection)mc=r.collection.map(x=>Number(x.seed)).reverse();if('current' in r)curSeed=r.current==null?null:Number(r.current)}
 const rating=()=>mc.reduce((a,s)=>a+total(pick(s),s),0);
-const upd=()=>{$('cnt').textContent=(nick?nick+' · ':'')+'Найдено: '+found+' · Коллекция: '+mc.length+'/'+LIM+' · Рейтинг: '+rating();resTxt();const ok=window.cur&&curSeed!=null&&seed===curSeed&&!mc.includes(seed);$('sellc').disabled=!ok;$('sellc').textContent=ok?'Продать за '+sellP(total(window.cur,seed)):'Продать'};
+const upd=()=>{$('cnt').textContent=(nick?nick+(account?'':' (гость)')+' · ':'')+'Найдено: '+found+' · Коллекция: '+mc.length+'/'+LIM+' · Рейтинг: '+rating();resTxt();const ok=window.cur&&curSeed!=null&&seed===curSeed&&!mc.includes(seed);$('sellc').disabled=!ok;$('sellc').textContent=ok?'Продать за '+sellP(total(window.cur,seed)):'Продать'};
 const addSt=()=>{const has=mc.includes(seed),full=mc.length>=LIM;$('add').disabled=has||full||seed!==curSeed;$('add').textContent=has?'В коллекции ✓':full?'Коллекция полна':'В коллекцию'};
 const dw=(ix,s,p)=>draw(ix,s).replace(/id="(\w+)"/g,`id="$1${p}"`).replace(/url\(#(\w+)\)/g,`url(#$1${p})`).replace(/href="#(\w+)"/g,`href="#$1${p}"`);
 function render(s){seed=s;const ix=pick(s),p=total(ix,s),t=tierOf(p);window.cur=ix;
@@ -275,10 +277,26 @@ const esc=s=>String(s).replace(/[&<>"']/g,c=>'&#'+c.charCodeAt(0)+';');
 async function au(p,b){const r=await fetch(SB+'/auth/v1/'+p,{method:'POST',headers:{apikey:PK,'Content-Type':'application/json'},body:JSON.stringify(b)}),j=await r.json();if(!r.ok){const e=new Error('auth');e.status=r.status;throw e}j.expires_at=j.expires_at||Math.floor(Date.now()/1000)+j.expires_in;return j}
 async function session(){sess=sess||ls('sb');if(sess&&sess.expires_at>Date.now()/1000+60)return sess;if(sess&&sess.refresh_token){try{sess=await au('token?grant_type=refresh_token',{refresh_token:sess.refresh_token});ls('sb',sess);return sess}catch(e){if(!(e.status>=400&&e.status<500))throw e}}sess=await au('signup',{data:{},gotrue_meta_security:{}});ls('sb',sess);return sess}
 async function api(action,x){const s=await session(),r=await fetch(SB+'/functions/v1/game',{method:'POST',headers:{apikey:PK,Authorization:'Bearer '+s.access_token,'Content-Type':'application/json'},body:JSON.stringify({action,...x})});return r.json().catch(()=>({error:'server'}))}
-function askNick(){return new Promise(res=>{const d=$('ndlg');d.oncancel=e=>e.preventDefault();$('ngo').onclick=async()=>{const r=await api('nick',{nickname:$('nin').value});if(r.ok){nick=r.nickname;d.close();res()}else $('nmsg').textContent=r.error==='taken'?'Этот ник занят.':r.error==='bad_nick'?'Ник: 3-16 символов, буквы, цифры, пробел, _ и -.':'Ошибка, попробуй ещё раз.'};d.showModal()})}
+function askNick(){return new Promise(res=>{nickDone=res;const d=$('ndlg');d.oncancel=e=>e.preventDefault();$('ngo').onclick=async()=>{const r=await api('nick',{nickname:$('nin').value});if(r.ok){nick=r.nickname;d.close();res()}else $('nmsg').textContent=r.error==='taken'?'Этот ник занят.':r.error==='bad_nick'?'Ник: 3-16 символов, буквы, цифры, пробел, _ и -.':'Ошибка, попробуй ещё раз.'};d.showModal()})}
 async function boot(){try{const st=await api('state');if(st.error)throw 0;nick=st.nickname;apply(st);if(!nick)await askNick();if(curSeed!=null)render(curSeed);else{$('pts').textContent='Нажми «Найти гриб»';addSt();upd()}}catch(e){$('pts').textContent='Нет связи с сервером. Обнови страницу.'}}
 $('lcl').onclick=()=>$('ldlg').close();
 $('ocl').onclick=()=>$('odlg').close();
+const AERR={bad_login:'Логин: 3-20 символов, буквы, цифры, _ и -.',bad_pass:'Пароль: от 6 до 64 символов.',taken:'Такой логин уже занят.',has_account:'У этого прогресса уже есть аккаунт.',bad_creds:'Неверный логин или пароль.',locked:'Слишком много попыток, подожди 10 минут.',bad_code:'Неверный код восстановления.'};
+async function outFresh(){const o=await api('logout');if(!o.ok)return o;sess=null;ls('sb',null);const st=await api('state');return st.error?st:{...st,ok:true}}
+function aRender(){$('abody').innerHTML=account?`<div class="kr"><span>Ты вошёл как <b>${esc(account)}</b></span><button data-a="logout" style="width:auto">Выйти</button></div><div class="sub">Прогресс хранится на аккаунте, зайти можно с любого устройства.</div>`:
+`<h4>Сохранить прогресс в аккаунт</h4><div class="sub">Придумай логин и пароль, прогресс этого гостя привяжется к ним.</div><input id="rl" placeholder="Логин (3-20)" autocomplete="username" maxlength="20"><input id="rp" type="password" placeholder="Пароль (от 6 символов)" autocomplete="new-password" maxlength="64"><button data-a="register">Создать аккаунт</button>
+<h4>Войти в существующий</h4><div class="sub">Прогресс этого устройства заменится прогрессом аккаунта.</div><input id="ll" placeholder="Логин" autocomplete="username" maxlength="20"><input id="lp" type="password" placeholder="Пароль" autocomplete="current-password" maxlength="64"><button data-a="login">Войти</button>
+<h4>Забыл пароль</h4><input id="fl" placeholder="Логин" maxlength="20"><input id="fc" placeholder="Код восстановления" maxlength="14"><input id="fp" type="password" placeholder="Новый пароль" autocomplete="new-password" maxlength="64"><button data-a="recover">Сменить пароль</button>`}
+function showAcc(){aRender();$('amsg').textContent='';if(!$('adlg').open)$('adlg').showModal()}
+$('acc').onclick=showAcc;$('nacc').onclick=showAcc;$('acl').onclick=()=>$('adlg').close();
+$('abody').onclick=async e=>{const b=e.target.closest('button[data-a]');if(!b)return;const a=b.dataset.a,v=id=>($(id)||{}).value||'';b.disabled=true;let r;
+try{r=a==='logout'?await outFresh():a==='register'?await api('register',{login:v('rl'),password:v('rp')}):a==='login'?await api('login',{login:v('ll'),password:v('lp')}):await api('recover',{login:v('fl'),code:v('fc'),password:v('fp')})}catch(x){r={}}
+b.disabled=false;if(!r.ok){$('amsg').textContent=AERR[r.error]||'Не удалось, попробуй ещё раз.';return}
+apply(r);if('nickname' in r)nick=r.nickname;aRender();
+$('amsg').textContent=a==='register'?'Аккаунт создан. Запиши код восстановления: '+r.recovery+' (он показывается один раз).':a==='login'?'Ты вошёл.':a==='logout'?'Ты вышел.':'Пароль изменён.';
+if(a==='login'||a==='logout'){if($('ndlg').open&&nick){$('ndlg').close();if(nickDone)nickDone()}
+if(curSeed!=null)render(curSeed);else{$('stage').innerHTML='';$('badge').textContent='';$('id').textContent='';$('tier').textContent='';$('pts').textContent='Нажми «Найти гриб»';addSt()}
+if(a==='logout'&&!nick){$('adlg').close();askNick().then(upd)}}upd()};
 function uRender(){let h='<h4>Поиск: ур. '+slvl+' · '+kk+' канд. за один поиск</h4>'+(ncost!=null?`<div class="kr"><span>Ур. ${slvl+1}: ${KT[slvl+1]} канд.</span><button data-k="buy"${gold>=ncost?'':' disabled'}>${fmt(ncost)}</button></div>`:'<div class="sub">Максимальный уровень</div>');
 h+='<h4>Автопродажа</h4><div class="sub">Отмеченные ступени продаются сразу при поиске (кроме самой высшей).</div>'+TIERS.slice(0,15).map((t,i)=>`<label class="kr"><span style="color:${t[2]}">${t[1]} · ${SELL[i]}</span><input type="checkbox" data-a="${i}"${(asl>>i)&1?' checked':''}></label>`).join('');
 h+='<h4>Все уровни</h4>'+KT.map((k,i)=>`<div class="kr"><span>Ур. ${i}${i===slvl?' · сейчас':''}</span><span>${k} канд.${i?' · '+fmt(SC[i-1]):''}</span></div>`).join('');
